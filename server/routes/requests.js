@@ -6,13 +6,13 @@ require('dotenv').config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
-// List all stadiums (public)
-router.get('/', async (req, res) => {
+// Get all requests (admin only)
+router.get('/', authMiddleware, async (req, res) => {
     try {
         const { data, error } = await supabase
-            .from('stadiums')
+            .from('requests')
             .select('*, profiles(full_name)')
-            .order('name');
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
         res.json(data);
@@ -21,30 +21,37 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get single stadium
-router.get('/:id', async (req, res) => {
+// Get user's own requests
+router.get('/my', authMiddleware, async (req, res) => {
     try {
         const { data, error } = await supabase
-            .from('stadiums')
+            .from('requests')
             .select('*')
-            .eq('id', req.params.id)
-            .single();
+            .eq('user_id', req.user.id)
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
         res.json(data);
     } catch (err) {
-        res.status(404).json({ error: 'Stadium not found' });
+        res.status(500).json({ error: err.message });
     }
 });
 
-// Create stadium (protected)
+// Create request
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { name, address, city, manager_id, contact_phone, location_lat, location_lng } = req.body;
+        const { type, start_date, end_date, reason } = req.body;
 
         const { data, error } = await supabase
-            .from('stadiums')
-            .insert([{ name, address, city, manager_id, contact_phone, location_lat, location_lng }])
+            .from('requests')
+            .insert([{
+                user_id: req.user.id,
+                type,
+                start_date,
+                end_date,
+                reason,
+                status: 'pending'
+            }])
             .select()
             .single();
 
@@ -55,33 +62,20 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Update stadium (protected)
-router.put('/:id', authMiddleware, async (req, res) => {
+// Update request status (admin only)
+router.patch('/:id/status', authMiddleware, async (req, res) => {
     try {
+        const { status, admin_notes } = req.body;
+
         const { data, error } = await supabase
-            .from('stadiums')
-            .update(req.body)
+            .from('requests')
+            .update({ status, admin_notes })
             .eq('id', req.params.id)
             .select()
             .single();
 
         if (error) throw error;
         res.json(data);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
-
-// Delete stadium (protected)
-router.delete('/:id', authMiddleware, async (req, res) => {
-    try {
-        const { error } = await supabase
-            .from('stadiums')
-            .delete()
-            .eq('id', req.params.id);
-
-        if (error) throw error;
-        res.json({ message: 'Stadium deleted' });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }

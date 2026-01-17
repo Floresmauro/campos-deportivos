@@ -1,9 +1,9 @@
 :root {
   /* Color Palette - University/Professional Style */
-  --primary: #003366; /* Deep Navy Blue */
+  --primary: #003366;
   --primary-light: #336699;
-  --secondary: #2E8B57; /* Sea Green - Grass/Sport vibes */
-  --accent: #FFD700; /* Gold/Yellow for highlights */
+  --secondary: #2E8B57;
+  --accent: #FFD700;
   --background: #F8F9FA;
   --surface: #FFFFFF;
   --text-main: #2C3E50;
@@ -25,9 +25,74 @@
   --radius-lg: 16px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* DARK MODE - IMPROVED CONTRAST */
+.dark-mode {
+  --primary: #5BA3F5;
+  /* Lighter blue for better visibility */
+  --primary-light: #7AB8F7;
+  --secondary: #6FD88D;
+  /* Brighter green */
+  --accent: #FFD700;
+  --background: #0f0f0f;
+  /* Darker background */
+  --surface: #1e1e1e;
+  /* Lighter surface for contrast */
+  --text-main: #F0F0F0;
+  /* Brighter text */
+  --text-secondary: #B8B8B8;
+  /* Lighter secondary text */
+  --border: #3a3a3a;
+  /* More visible borders */
+  --error: #FF6B6B;
+  --success: #51CF66;
+
+  /* Shadows for dark mode */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode body {
+  background-color: var(--background);
+  color: var(--text-main);
+}
+
+/* Ensure good contrast for cards in dark mode */
+.dark-mode .card,
+.dark-mode .stat-card,
+.dark-mode .news-card,
+.dark-mode .session-item,
+.dark-mode .toggle-option {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+/* Force readable text in dark mode */
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6 {
+  color: var(--text-main) !important;
+}
+
+/* Ensure secondary text is still readable */
+.dark-mode p,
+.dark-mode span:not(.slider) {
+  color: var(--text-secondary) !important;
+}
+
+/* Strong/important text should be bright */
+.dark-mode strong,
+.dark-mode .stat-value,
+.dark-mode .session-info strong {
+  color: var(--text-main) !important;
 }
 
 * {
@@ -41,33 +106,163 @@ body {
   color: var(--text-main);
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: var(--primary);
+/* Base Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: var(--space-md);
 }
 
-h1 { font-size: 2.5rem; }
-h2 { font-size: 2rem; }
-h3 { font-size: 1.75rem; }
-
-a {
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6 {
   color: var(--primary);
-  text-decoration: none;
-  transition: color 0.2s;
 }
 
-a:hover {
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.75rem;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+/* Main Content Links */
+main a {
+  color: var(--primary);
+}
+
+main a:hover {
   text-decoration: underline;
   color: var(--primary-light);
 }
 
-button {
-  cursor: pointer;
-  font-family: inherit;
+/* NAVBAR GLOBAL ENFORCEMENT */
+.navbar-custom,
+.navbar {
+  background: linear-gradient(90deg, #001f3f 0%, #003366 50%, #001f3f 100%) !important;
+}
+
+.navbar__link,
+.navbar__link:link,
+.navbar__link:visited,
+.navbar__link:active,
+.navbar-custom .navbar__link {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+.navbar__link:hover,
+.navbar-custom .navbar__link:hover {
+  color: #ffd700 !important;
+}
+
+.navbar__logo {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* FORCED NAVIGATION BUTTON COLORS (Prevent visited link purple) */
+/* Selector includes :link and :visited to override browser defaults */
+.navbar-custom .navbar__btn--portal,
+.navbar-custom .navbar__btn--portal:link,
+.navbar-custom .navbar__btn--portal:visited,
+.footer-custom .access-btn--portal,
+.footer-custom .access-btn--portal:link,
+.footer-custom .access-btn--portal:visited {
+  background-color: #ffd700 !important;
+  color: #000000 !important;
+  text-decoration: none !important;
+}
+
+.navbar-custom .navbar__btn--admin,
+.navbar-custom .navbar__btn--admin:link,
+.navbar-custom .navbar__btn--admin:visited {
+  background-color: #ffffff !important;
+  color: #003366 !important;
+  text-decoration: none !important;
+}
+
+.footer-custom .access-btn--admin,
+.footer-custom .access-btn--admin:link,
+.footer-custom .access-btn--admin:visited {
+  border: 1px solid #ffffff !important;
+  background-color: transparent !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+/* Footer link text style */
+.footer-custom a,
+.footer-custom a:link,
+.footer-custom a:visited {
+  color: white !important;
+  text-decoration: none !important;
+  transition: color 0.2s;
+}
+
+.footer-custom a:hover {
+  color: #ffd700 !important;
+}
+
+/* FOOTER GLOBAL ENFORCEMENT */
+.footer-custom,
+.footer {
+  background: linear-gradient(180deg, #0d1b2a 0%, #000000 100%) !important;
+  color: #ffffff !important;
+}
+
+.footer-custom h3,
+.footer-custom h4,
+.footer h3,
+.footer h4 {
+  color: #ffffff !important;
+}
+
+.footer-custom .footer__link--text,
+.footer-custom .footer__link--text:link,
+.footer-custom .footer__link--text:visited,
+.footer .footer__link--text {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.footer-custom .footer__link--text:hover,
+.footer .footer__link--text:hover {
+  color: #ffd700 !important;
+}
+
+.footer__logo {
+  color: #ffd700 !important;
+}
+
+.footer__desc,
+.c-text,
+.bottom-text {
+  color: #ffffff !important;
+  opacity: 0.9;
 }
 
 /* Utilities */
@@ -90,14 +285,10 @@ button {
   background-color: var(--primary);
   color: white;
 }
+
 .btn-primary:hover {
   background-color: var(--primary-light);
   text-decoration: none;
-}
-
-.btn-secondary {
-  background-color: var(--secondary);
-  color: white;
 }
 
 .card {
@@ -106,4 +297,60 @@ button {
   border-radius: var(--radius-md);
   padding: var(--space-lg);
   box-shadow: var(--shadow-sm);
+}
+
+/* ADMIN SIDEBAR GLOBAL ENFORCEMENT */
+.admin-layout .sidebar {
+  background: #001f3f !important;
+  /* Deep Navy */
+}
+
+.admin-layout .sidebar-header h2 {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.admin-layout .nav-item,
+.admin-layout .nav-item:link,
+.admin-layout .nav-item:visited {
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-decoration: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.admin-layout .nav-item span {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-left: 0.75rem !important;
+}
+
+.admin-layout .nav-item svg {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.admin-layout .nav-item:hover,
+.admin-layout .nav-item.active {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+.admin-layout .nav-item:hover span,
+.admin-layout .nav-item.active span,
+.admin-layout .nav-item:hover svg,
+.admin-layout .nav-item.active svg {
+  color: #ffffff !important;
+}
+
+.admin-layout .nav-item.active {
+  border-left: 4px solid #ffd700 !important;
+  /* Gold side border */
+}
+
+.admin-layout .nav-item.logout {
+  color: #ff4d4d !important;
+}
+
+.admin-layout .nav-item.logout span,
+.admin-layout .nav-item.logout svg {
+  color: #ff4d4d !important;
 }

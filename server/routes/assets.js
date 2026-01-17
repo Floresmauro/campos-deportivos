@@ -6,13 +6,13 @@ require('dotenv').config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
-// List all stadiums (public)
+// List all assets
 router.get('/', async (req, res) => {
     try {
         const { data, error } = await supabase
-            .from('stadiums')
-            .select('*, profiles(full_name)')
-            .order('name');
+            .from('assets')
+            .select('*, stadiums(name)')
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
         res.json(data);
@@ -21,11 +21,11 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get single stadium
+// Get single asset
 router.get('/:id', async (req, res) => {
     try {
         const { data, error } = await supabase
-            .from('stadiums')
+            .from('assets')
             .select('*')
             .eq('id', req.params.id)
             .single();
@@ -33,18 +33,16 @@ router.get('/:id', async (req, res) => {
         if (error) throw error;
         res.json(data);
     } catch (err) {
-        res.status(404).json({ error: 'Stadium not found' });
+        res.status(404).json({ error: 'Asset not found' });
     }
 });
 
-// Create stadium (protected)
+// Create asset (protected)
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { name, address, city, manager_id, contact_phone, location_lat, location_lng } = req.body;
-
         const { data, error } = await supabase
-            .from('stadiums')
-            .insert([{ name, address, city, manager_id, contact_phone, location_lat, location_lng }])
+            .from('assets')
+            .insert([req.body])
             .select()
             .single();
 
@@ -55,11 +53,11 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Update stadium (protected)
+// Update asset (protected)
 router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const { data, error } = await supabase
-            .from('stadiums')
+            .from('assets')
             .update(req.body)
             .eq('id', req.params.id)
             .select()
@@ -72,16 +70,16 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Delete stadium (protected)
+// Delete asset (protected)
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { error } = await supabase
-            .from('stadiums')
+            .from('assets')
             .delete()
             .eq('id', req.params.id);
 
         if (error) throw error;
-        res.json({ message: 'Stadium deleted' });
+        res.json({ message: 'Asset deleted' });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
