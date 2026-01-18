@@ -6,172 +6,172 @@ import { Truck, CheckCircle, XCircle, Info, RefreshCw, Move } from 'lucide-react
 import { useAuth } from '@/contexts/AuthContext';
 
 const QRScanner = dynamic(() => import('@/components/common/QRScanner'), {
-    ssr: false,
-    loading: () => <div className="scanner-placeholder">Cargando Cámara...</div>
+  ssr: false,
+  loading: () => <div className="scanner-placeholder">Cargando Cámara...</div>
 });
 
 export default function QRAssetsPage() {
-    const { user } = useAuth();
-    const [status, setStatus] = useState<'idle' | 'scanning' | 'options' | 'validating' | 'success' | 'error'>('idle');
-    const [scannedQr, setScannedQr] = useState<string | null>(null);
-    const [message, setMessage] = useState('');
-    const [stadiums, setStadiums] = useState<any[]>([]);
+  const { user } = useAuth();
+  const [status, setStatus] = useState<'idle' | 'scanning' | 'options' | 'validating' | 'success' | 'error'>('idle');
+  const [scannedQr, setScannedQr] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
+  const [stadiums, setStadiums] = useState<any[]>([]);
 
-    // Fetch stadiums when entering options
-    const fetchStadiums = async () => {
-        try {
-            const resp = await fetch('http://localhost:3001/api/stadiums');
-            const data = await resp.json();
-            setStadiums(data);
-        } catch (error) {
-            console.error("Error fetching stadiums:", error);
-        }
-    };
+  // Fetch stadiums when entering options
+  const fetchStadiums = async () => {
+    try {
+      const resp = await fetch('http://localhost:3001/api/stadiums');
+      const data = await resp.json();
+      setStadiums(data);
+    } catch (error) {
+      console.error("Error fetching stadiums:", error);
+    }
+  };
 
-    const handleScanSuccess = useCallback((decodedText: string) => {
-        setScannedQr(decodedText);
-        setStatus('options');
-        fetchStadiums();
-    }, []);
+  const handleScanSuccess = useCallback((decodedText: string) => {
+    setScannedQr(decodedText);
+    setStatus('options');
+    fetchStadiums();
+  }, []);
 
-    const handleAction = async (action: 'receive' | 'transfer', targetStadiumId?: string) => {
-        if (!scannedQr || !user) return;
+  const handleAction = async (action: 'receive' | 'transfer', targetStadiumId?: string) => {
+    if (!scannedQr || !user) return;
 
-        setStatus('validating');
-        try {
-            const response = await fetch('http://localhost:3001/api/qr/asset-move', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    assetQrCode: scannedQr,
-                    userId: user.id,
-                    action,
-                    targetStadiumId
-                })
-            });
+    setStatus('validating');
+    try {
+      const response = await fetch('http://localhost:3001/api/qr/asset-move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assetQrCode: scannedQr,
+          userId: user.id,
+          action,
+          targetStadiumId
+        })
+      });
 
-            const result = await response.json();
+      const result = await response.json();
 
-            if (response.ok) {
-                setStatus('success');
-                setMessage(result.message);
-            } else {
-                setStatus('error');
-                setMessage(result.message || result.error);
-            }
-        } catch (error) {
-            console.error("Fetch error:", error);
-            setStatus('error');
-            setMessage('Error de conexión con el servidor');
-        }
-    };
+      if (response.ok) {
+        setStatus('success');
+        setMessage(result.message);
+      } else {
+        setStatus('error');
+        setMessage(result.message || result.error);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setStatus('error');
+      setMessage('Error de conexión con el servidor');
+    }
+  };
 
-    return (
-        <div className="portal-container">
-            <div className="assets-header">
-                <h1>Movimiento de Activos</h1>
-                <p>Escanea el código QR de la maquinaria para registrar su traslado o recepción</p>
+  return (
+    <div className="portal-container">
+      <div className="assets-header">
+        <h1>Movimiento de Activos</h1>
+        <p>Escanea el código QR de la maquinaria para registrar su traslado o recepción</p>
+      </div>
+
+      <div className="assets-card">
+        {status === 'idle' && (
+          <div className="state-view">
+            <Truck size={48} className="icon-main" />
+            <div className="instructions">
+              <h3>Control de Maquinaria</h3>
+              <p>Escanea el QR pegado en la maquinaria para cambiar su custodia o ubicación.</p>
+              <button className="btn-primary" onClick={() => setStatus('scanning')}>
+                Abrir Escáner
+              </button>
+            </div>
+          </div>
+        )}
+
+        {status === 'scanning' && (
+          <div className="state-view">
+            <QRScanner onScanSuccess={handleScanSuccess} />
+            <button className="btn-outline" onClick={() => setStatus('idle')}>
+              Cancelar
+            </button>
+          </div>
+        )}
+
+        {status === 'options' && (
+          <div className="state-view">
+            <Info size={40} color="var(--primary)" />
+            <h3>Maquinaria Identificada</h3>
+            <p>¿Qué acción deseas realizar?</p>
+
+            <div className="action-grid">
+              <div className="action-box">
+                <h4><RefreshCw size={20} /> Recepción</h4>
+                <p>Confirmar que la maquinaria llegó a esta sede.</p>
+                <select
+                  className="stadium-select"
+                  onChange={(e) => handleAction('receive', e.target.value)}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Seleccionar Sede...</option>
+                  {stadiums.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="action-separator">O</div>
+
+              <div className="action-box">
+                <h4><Move size={20} /> Traslado</h4>
+                <p>Iniciar el traslado de esta maquinaria hacia otra ubicación.</p>
+                <button
+                  className="btn-primary-sm"
+                  onClick={() => handleAction('transfer')}
+                >
+                  Iniciar Traslado
+                </button>
+              </div>
             </div>
 
-            <div className="assets-card">
-                {status === 'idle' && (
-                    <div className="state-view">
-                        <Truck size={48} className="icon-main" />
-                        <div className="instructions">
-                            <h3>Control de Maquinaria</h3>
-                            <p>Escanea el QR pegado en la maquinaria para cambiar su custodia o ubicación.</p>
-                            <button className="btn-primary" onClick={() => setStatus('scanning')}>
-                                Abrir Escáner
-                            </button>
-                        </div>
-                    </div>
-                )}
+            <button className="btn-outline" onClick={() => setStatus('idle')}>
+              Cancelar
+            </button>
+          </div>
+        )}
 
-                {status === 'scanning' && (
-                    <div className="state-view">
-                        <QRScanner onScanSuccess={handleScanSuccess} />
-                        <button className="btn-outline" onClick={() => setStatus('idle')}>
-                            Cancelar
-                        </button>
-                    </div>
-                )}
+        {status === 'validating' && (
+          <div className="state-view loading">
+            <div className="spinner"></div>
+            <p>Procesando movimiento...</p>
+          </div>
+        )}
 
-                {status === 'options' && (
-                    <div className="state-view">
-                        <Info size={40} color="var(--primary)" />
-                        <h3>Maquinaria Identificada</h3>
-                        <p>¿Qué acción deseas realizar?</p>
+        {status === 'success' && (
+          <div className="state-view result">
+            <CheckCircle size={64} color="var(--success)" />
+            <h2>Registro Exitoso</h2>
+            <p>{message}</p>
+            <button className="btn-primary" onClick={() => window.location.reload()}>
+              Continuar
+            </button>
+          </div>
+        )}
 
-                        <div className="action-grid">
-                            <div className="action-box">
-                                <h4><RefreshCw size={20} /> Recepción</h4>
-                                <p>Confirmar que la maquinaria llegó a esta sede.</p>
-                                <select
-                                    className="stadium-select"
-                                    onChange={(e) => handleAction('receive', e.target.value)}
-                                    defaultValue=""
-                                >
-                                    <option value="" disabled>Seleccionar Sede...</option>
-                                    {stadiums.map(s => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+        {status === 'error' && (
+          <div className="state-view result">
+            <XCircle size={64} color="var(--error)" />
+            <h2>Error en Registro</h2>
+            <p>{message}</p>
+            <button className="btn-primary" onClick={() => setStatus('scanning')}>
+              Reintentar Escaneo
+            </button>
+            <button className="btn-outline" onClick={() => setStatus('idle')}>
+              Cancelar
+            </button>
+          </div>
+        )}
+      </div>
 
-                            <div className="action-separator">O</div>
-
-                            <div className="action-box">
-                                <h4><Move size={20} /> Traslado</h4>
-                                <p>Iniciar el traslado de esta maquinaria hacia otra ubicación.</p>
-                                <button
-                                    className="btn-primary-sm"
-                                    onClick={() => handleAction('transfer')}
-                                >
-                                    Iniciar Traslado
-                                </button>
-                            </div>
-                        </div>
-
-                        <button className="btn-outline" onClick={() => setStatus('idle')}>
-                            Cancelar
-                        </button>
-                    </div>
-                )}
-
-                {status === 'validating' && (
-                    <div className="state-view loading">
-                        <div className="spinner"></div>
-                        <p>Procesando movimiento...</p>
-                    </div>
-                )}
-
-                {status === 'success' && (
-                    <div className="state-view result">
-                        <CheckCircle size={64} color="var(--success)" />
-                        <h2>Registro Exitoso</h2>
-                        <p>{message}</p>
-                        <button className="btn-primary" onClick={() => window.location.reload()}>
-                            Continuar
-                        </button>
-                    </div>
-                )}
-
-                {status === 'error' && (
-                    <div className="state-view result">
-                        <XCircle size={64} color="var(--error)" />
-                        <h2>Error en Registro</h2>
-                        <p>{message}</p>
-                        <button className="btn-primary" onClick={() => setStatus('scanning')}>
-                            Reintentar Escaneo
-                        </button>
-                        <button className="btn-outline" onClick={() => setStatus('idle')}>
-                            Cancelar
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            <style jsx>{`
+      <style jsx>{`
         .portal-container {
           max-width: 600px;
           margin: 0 auto;
@@ -312,7 +312,8 @@ export default function QRAssetsPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #eee;
+          background: var(--background);
+          color: var(--text-secondary);
           border-radius: 12px;
         }
 
@@ -330,6 +331,6 @@ export default function QRAssetsPage() {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

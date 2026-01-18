@@ -1,93 +1,350 @@
 "use client";
 
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Search, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Pencil, Trash2, Search, MapPin, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { supabase } from '@/lib/supabase';
+import Modal from '@/components/Modal';
+
+interface Stadium {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  location_lat: number | null;
+  location_lng: number | null;
+  status: string;
+  created_at: string;
+}
 
 export default function StadiumsPage() {
-    const [searchTerm, setSearchTerm] = useState('');
+  const [stadiums, setStadiums] = useState<Stadium[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-    // Mock data
-    const stadiums = [
-        { id: 1, name: 'Estadio Racing Club', city: 'Avellaneda', manager: 'Carlos Ruiz', status: 'Activo' },
-        { id: 2, name: 'Estadio Banfield', city: 'Banfield', manager: 'María García', status: 'Activo' },
-        { id: 3, name: 'Defensa y Justicia', city: 'Florencio Varela', manager: 'Pedro López', status: 'Activo' },
-        { id: 4, name: 'Argentinos Juniors', city: 'La Paternal', manager: 'Laura Martínez', status: 'Mantenimiento' },
-    ];
+  // Modal states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [selectedStadium, setSelectedStadium] = useState<Stadium | null>(null);
 
-    const filtered = stadiums.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.city.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    city: '',
+    location_lat: '',
+    location_lng: '',
+    status: 'active'
+  });
 
-    return (
-        <div className="stadiums-page">
-            <div className="page-header">
-                <div>
-                    <h1>Gestión de Estadios</h1>
-                    <p>Administre las sedes y asigne encargados.</p>
-                </div>
-                <button className="btn btn-primary">
-                    <Plus size={18} />
-                    Nuevo Estadio
-                </button>
-            </div>
+  useEffect(() => {
+    loadStadiums();
+  }, []);
 
-            {/* Search */}
-            <div className="search-bar">
-                <Search size={20} />
-                <input
-                    type="text"
-                    placeholder="Buscar por nombre o ciudad..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
+  const loadStadiums = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stadiums')
+        .select('*')
+        .order('name');
 
-            {/* Table */}
-            <div className="table-wrapper">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Ciudad</th>
-                            <th>Encargado</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.map((stadium) => (
-                            <tr key={stadium.id}>
-                                <td>
-                                    <div className="cell-with-icon">
-                                        <MapPin size={16} />
-                                        {stadium.name}
-                                    </div>
-                                </td>
-                                <td>{stadium.city}</td>
-                                <td>{stadium.manager}</td>
-                                <td>
-                                    <span className={`status-badge ${stadium.status === 'Activo' ? 'active' : 'maintenance'}`}>
-                                        {stadium.status}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div className="action-btns">
-                                        <button className="icon-btn edit"><Pencil size={16} /></button>
-                                        <button className="icon-btn delete"><Trash2 size={16} /></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+      if (error) throw error;
+      setStadiums(data || []);
+    } catch (error) {
+      console.error('Error loading stadiums:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            <style jsx>{`
-        .stadiums-page {
-          max-width: 1200px;
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      address: '',
+      city: '',
+      location_lat: '',
+      location_lng: '',
+      status: 'active'
+    });
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const insertData = {
+        name: formData.name,
+        address: formData.address,
+        city: formData.city,
+        location_lat: formData.location_lat ? parseFloat(formData.location_lat) : null,
+        location_lng: formData.location_lng ? parseFloat(formData.location_lng) : null,
+        status: formData.status
+      };
+
+      const { data, error } = await supabase.from('stadiums').insert([insertData]).select().single();
+      if (error) throw error;
+
+      setIsCreateModalOpen(false);
+      resetForm();
+      loadStadiums();
+
+      // Show QR modal for new stadium
+      if (data) {
+        setSelectedStadium(data);
+        setIsQrModalOpen(true);
+      }
+    } catch (error: any) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedStadium) return;
+
+    try {
+      const updateData = {
+        name: formData.name,
+        address: formData.address,
+        city: formData.city,
+        location_lat: formData.location_lat ? parseFloat(formData.location_lat) : null,
+        location_lng: formData.location_lng ? parseFloat(formData.location_lng) : null,
+        status: formData.status
+      };
+
+      const { error } = await supabase.from('stadiums').update(updateData).eq('id', selectedStadium.id);
+      if (error) throw error;
+
+      setIsEditModalOpen(false);
+      setSelectedStadium(null);
+      resetForm();
+      loadStadiums();
+    } catch (error: any) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este estadio?')) return;
+
+    try {
+      const { error } = await supabase.from('stadiums').delete().eq('id', id);
+      if (error) throw error;
+      loadStadiums();
+    } catch (error: any) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const openEditModal = (stadium: Stadium) => {
+    setSelectedStadium(stadium);
+    setFormData({
+      name: stadium.name,
+      address: stadium.address || '',
+      city: stadium.city || '',
+      location_lat: stadium.location_lat?.toString() || '',
+      location_lng: stadium.location_lng?.toString() || '',
+      status: stadium.status || 'active'
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const openQrModal = (stadium: Stadium) => {
+    setSelectedStadium(stadium);
+    setIsQrModalOpen(true);
+  };
+
+  const filtered = stadiums.filter(s =>
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.city || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const StadiumForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string }) => (
+    <form onSubmit={onSubmit} className="stadium-form">
+      <div className="form-group">
+        <label>Nombre del Estadio *</label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={e => setFormData({ ...formData, name: e.target.value })}
+          required
+          placeholder="Ej: Estadio Racing Club"
+        />
+      </div>
+      <div className="form-group">
+        <label>Dirección</label>
+        <input
+          type="text"
+          value={formData.address}
+          onChange={e => setFormData({ ...formData, address: e.target.value })}
+          placeholder="Ej: Av. Mitre 1234"
+        />
+      </div>
+      <div className="form-group">
+        <label>Ciudad</label>
+        <input
+          type="text"
+          value={formData.city}
+          onChange={e => setFormData({ ...formData, city: e.target.value })}
+          placeholder="Ej: Avellaneda"
+        />
+      </div>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Latitud (GPS)</label>
+          <input
+            type="number"
+            step="any"
+            value={formData.location_lat}
+            onChange={e => setFormData({ ...formData, location_lat: e.target.value })}
+            placeholder="-34.6692"
+          />
+        </div>
+        <div className="form-group">
+          <label>Longitud (GPS)</label>
+          <input
+            type="number"
+            step="any"
+            value={formData.location_lng}
+            onChange={e => setFormData({ ...formData, location_lng: e.target.value })}
+            placeholder="-58.3650"
+          />
+        </div>
+      </div>
+      <div className="form-group">
+        <label>Estado</label>
+        <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
+          <option value="active">Activo</option>
+          <option value="maintenance">En Mantenimiento</option>
+          <option value="inactive">Inactivo</option>
+        </select>
+      </div>
+      <button type="submit" className="btn btn-primary btn-block">{submitLabel}</button>
+
+      <style jsx>{`
+        .stadium-form { display: flex; flex-direction: column; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group label { font-weight: 500; color: var(--text-main); }
+        .form-group input, .form-group select {
+          padding: 0.75rem;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-sm);
+          font-size: 1rem;
+          background: var(--background);
+          color: var(--text-main);
         }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn-block { width: 100%; margin-top: 0.5rem; }
+      `}</style>
+    </form>
+  );
 
+  return (
+    <div className="stadiums-page">
+      <div className="page-header">
+        <div>
+          <h1>Gestión de Estadios</h1>
+          <p>Administre las sedes para fichaje de personal.</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => { resetForm(); setIsCreateModalOpen(true); }}>
+          <Plus size={18} />
+          Nuevo Estadio
+        </button>
+      </div>
+
+      <div className="search-bar">
+        <Search size={20} />
+        <input
+          type="text"
+          placeholder="Buscar por nombre o ciudad..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {loading ? (
+        <div className="loading-state">Cargando estadios...</div>
+      ) : stadiums.length === 0 ? (
+        <div className="empty-state">
+          <MapPin size={48} />
+          <p>No hay estadios registrados. Crea el primero.</p>
+        </div>
+      ) : (
+        <div className="table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Ciudad</th>
+                <th>Dirección</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((stadium) => (
+                <tr key={stadium.id}>
+                  <td>
+                    <div className="cell-with-icon">
+                      <MapPin size={16} />
+                      {stadium.name}
+                    </div>
+                  </td>
+                  <td>{stadium.city || '-'}</td>
+                  <td>{stadium.address || '-'}</td>
+                  <td>
+                    <span className={`status-badge ${stadium.status === 'active' ? 'active' : stadium.status === 'maintenance' ? 'maintenance' : 'inactive'}`}>
+                      {stadium.status === 'active' ? 'Activo' : stadium.status === 'maintenance' ? 'Mantenimiento' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-btns">
+                      <button className="icon-btn qr" onClick={() => openQrModal(stadium)} title="Ver QR">
+                        <QrCode size={16} />
+                      </button>
+                      <button className="icon-btn edit" onClick={() => openEditModal(stadium)} title="Editar">
+                        <Pencil size={16} />
+                      </button>
+                      <button className="icon-btn delete" onClick={() => handleDelete(stadium.id)} title="Eliminar">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nuevo Estadio">
+        <StadiumForm onSubmit={handleCreate} submitLabel="Crear Estadio" />
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedStadium(null); }} title="Editar Estadio">
+        <StadiumForm onSubmit={handleEdit} submitLabel="Guardar Cambios" />
+      </Modal>
+
+      {/* QR Modal */}
+      <Modal isOpen={isQrModalOpen} onClose={() => { setIsQrModalOpen(false); setSelectedStadium(null); }} title="Código QR para Fichaje">
+        {selectedStadium && (
+          <div className="qr-container">
+            <div className="qr-preview">
+              <QRCodeSVG value={selectedStadium.id} size={200} level="H" includeMargin={true} fgColor="#1a472a" />
+            </div>
+            <h3>{selectedStadium.name}</h3>
+            <p>Los empleados pueden escanear este código para fichar su entrada/salida.</p>
+            <button className="btn btn-primary btn-block" onClick={() => window.print()}>
+              Imprimir QR
+            </button>
+          </div>
+        )}
+      </Modal>
+
+      <style jsx>{`
+        .stadiums-page { max-width: 1200px; }
         .page-header {
           display: flex;
           justify-content: space-between;
@@ -96,59 +353,47 @@ export default function StadiumsPage() {
           flex-wrap: wrap;
           gap: 1rem;
         }
-
-        .page-header h1 {
-          margin-bottom: 0.25rem;
-        }
-
-        .page-header p {
-          color: var(--text-secondary);
-          margin: 0;
-        }
-
-        .btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
+        .page-header h1 { margin-bottom: 0.25rem; }
+        .page-header p { color: var(--text-secondary); margin: 0; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; }
         .search-bar {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          background: white;
+          background: var(--surface);
           padding: 0.75rem 1rem;
           border-radius: var(--radius-md);
           box-shadow: var(--shadow-sm);
           margin-bottom: 1.5rem;
+          border: 1px solid var(--border);
         }
-
         .search-bar input {
           border: none;
           outline: none;
           flex: 1;
           font-size: 1rem;
+          background: transparent;
+          color: var(--text-main);
         }
-
+        .loading-state, .empty-state {
+          text-align: center;
+          padding: 4rem 2rem;
+          color: var(--text-secondary);
+        }
+        .empty-state svg { margin-bottom: 1rem; opacity: 0.5; }
         .table-wrapper {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           box-shadow: var(--shadow-sm);
           overflow-x: auto;
+          border: 1px solid var(--border);
         }
-
-        .data-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .data-table th,
-        .data-table td {
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td {
           padding: 1rem;
           text-align: left;
           border-bottom: 1px solid var(--border);
         }
-
         .data-table th {
           background: var(--background);
           font-weight: 600;
@@ -156,36 +401,22 @@ export default function StadiumsPage() {
           font-size: 0.85rem;
           text-transform: uppercase;
         }
-
         .cell-with-icon {
           display: flex;
           align-items: center;
           gap: 0.5rem;
           color: var(--primary);
         }
-
         .status-badge {
           padding: 0.25rem 0.75rem;
           border-radius: 20px;
           font-size: 0.8rem;
           font-weight: 500;
         }
-
-        .status-badge.active {
-          background: #d1fae5;
-          color: #065f46;
-        }
-
-        .status-badge.maintenance {
-          background: #fef3c7;
-          color: #92400e;
-        }
-
-        .action-btns {
-          display: flex;
-          gap: 0.5rem;
-        }
-
+        .status-badge.active { background: #d1fae5; color: #065f46; }
+        .status-badge.maintenance { background: #fef3c7; color: #92400e; }
+        .status-badge.inactive { background: #e5e7eb; color: #4b5563; }
+        .action-btns { display: flex; gap: 0.5rem; }
         .icon-btn {
           padding: 0.5rem;
           border: none;
@@ -193,21 +424,22 @@ export default function StadiumsPage() {
           cursor: pointer;
           transition: background 0.2s;
         }
-
-        .icon-btn.edit {
-          background: #e0f2fe;
-          color: #0369a1;
+        .icon-btn.qr { background: #e0f2fe; color: #0369a1; }
+        .icon-btn.edit { background: #fef3c7; color: #92400e; }
+        .icon-btn.delete { background: #fee2e2; color: #b91c1c; }
+        .icon-btn:hover { filter: brightness(0.9); }
+        .qr-container { text-align: center; }
+        .qr-preview {
+          background: white;
+          padding: 1rem;
+          border-radius: var(--radius-md);
+          display: inline-block;
+          margin-bottom: 1rem;
         }
-
-        .icon-btn.delete {
-          background: #fee2e2;
-          color: #b91c1c;
-        }
-
-        .icon-btn:hover {
-          filter: brightness(0.9);
-        }
+        .qr-container h3 { margin: 0 0 0.5rem; color: var(--primary); }
+        .qr-container p { color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .btn-block { width: 100%; }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

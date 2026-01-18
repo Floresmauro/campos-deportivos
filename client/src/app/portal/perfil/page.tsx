@@ -3,93 +3,93 @@
 import { User, Phone, Mail, Building2, Shield, Edit } from 'lucide-react';
 
 export default function PerfilPage() {
-    // Mock user data
-    const user = {
-        name: "Juan Pérez",
-        email: "juan.perez@camposdeportivos.com",
-        phone: "+54 11 1234-5678",
-        role: "Operario de Campo",
-        stadium: "Racing Club",
-        startDate: "15/03/2022",
-        obraSocial: "OSDE 310"
-    };
+  // Mock user data
+  const user = {
+    name: "Juan Pérez",
+    email: "juan.perez@camposdeportivos.com",
+    phone: "+54 11 1234-5678",
+    role: "Operario de Campo",
+    stadium: "Racing Club",
+    startDate: "15/03/2022",
+    obraSocial: "OSDE 310"
+  };
 
-    return (
-        <div className="perfil-page">
-            <header className="perfil-header">
-                <div className="avatar-large">
-                    <User size={48} />
-                </div>
-                <h1>{user.name}</h1>
-                <p>{user.role}</p>
-            </header>
+  return (
+    <div className="perfil-page">
+      <header className="perfil-header">
+        <div className="avatar-large">
+          <User size={48} />
+        </div>
+        <h1>{user.name}</h1>
+        <p>{user.role}</p>
+      </header>
 
-            <main className="perfil-main">
-                <section className="info-section">
-                    <div className="section-header">
-                        <h2>Información Personal</h2>
-                        <button className="edit-btn"><Edit size={16} /> Editar</button>
-                    </div>
+      <main className="perfil-main">
+        <section className="info-section">
+          <div className="section-header">
+            <h2>Información Personal</h2>
+            <button className="edit-btn"><Edit size={16} /> Editar</button>
+          </div>
 
-                    <div className="info-list">
-                        <div className="info-item">
-                            <Mail size={20} className="icon" />
-                            <div>
-                                <span className="label">Email</span>
-                                <span className="value">{user.email}</span>
-                            </div>
-                        </div>
-                        <div className="info-item">
-                            <Phone size={20} className="icon" />
-                            <div>
-                                <span className="label">Teléfono</span>
-                                <span className="value">{user.phone}</span>
-                            </div>
-                        </div>
-                        <div className="info-item">
-                            <Building2 size={20} className="icon" />
-                            <div>
-                                <span className="label">Sede Asignada</span>
-                                <span className="value">{user.stadium}</span>
-                            </div>
-                        </div>
-                        <div className="info-item">
-                            <Shield size={20} className="icon" />
-                            <div>
-                                <span className="label">Obra Social</span>
-                                <span className="value">{user.obraSocial}</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+          <div className="info-list">
+            <div className="info-item">
+              <Mail size={20} className="icon" />
+              <div>
+                <span className="label">Email</span>
+                <span className="value">{user.email}</span>
+              </div>
+            </div>
+            <div className="info-item">
+              <Phone size={20} className="icon" />
+              <div>
+                <span className="label">Teléfono</span>
+                <span className="value">{user.phone}</span>
+              </div>
+            </div>
+            <div className="info-item">
+              <Building2 size={20} className="icon" />
+              <div>
+                <span className="label">Sede Asignada</span>
+                <span className="value">{user.stadium}</span>
+              </div>
+            </div>
+            <div className="info-item">
+              <Shield size={20} className="icon" />
+              <div>
+                <span className="label">Obra Social</span>
+                <span className="value">{user.obraSocial}</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                <section className="info-section">
-                    <h2>Datos Laborales</h2>
-                    <div className="info-grid">
-                        <div className="info-card">
-                            <span className="card-label">Fecha de Ingreso</span>
-                            <span className="card-value">{user.startDate}</span>
-                        </div>
-                        <div className="info-card">
-                            <span className="card-label">Antigüedad</span>
-                            <span className="card-value">2 años, 10 meses</span>
-                        </div>
-                    </div>
-                </section>
+        <section className="info-section">
+          <h2>Datos Laborales</h2>
+          <div className="info-grid">
+            <div className="info-card">
+              <span className="card-label">Fecha de Ingreso</span>
+              <span className="card-value">{user.startDate}</span>
+            </div>
+            <div className="info-card">
+              <span className="card-label">Antigüedad</span>
+              <span className="card-value">2 años, 10 meses</span>
+            </div>
+          </div>
+        </section>
 
-                <div className="actions">
-                    <button className="btn btn-secondary">Cambiar Contraseña</button>
-                </div>
-            </main>
+        <div className="actions">
+          <button className="btn btn-secondary">Cambiar Contraseña</button>
+        </div>
+      </main>
 
-            <style jsx>{`
+      <style jsx>{`
         .perfil-page {
           min-height: 100vh;
           background: var(--background);
         }
 
         .perfil-header {
-          background: var(--primary);
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 100%);
           color: white;
           padding: 3rem 1.5rem 2rem;
           text-align: center;
@@ -107,13 +107,14 @@ export default function PerfilPage() {
         }
 
         .perfil-header h1 {
-          color: white;
+          color: white !important;
           font-size: 1.75rem;
           margin-bottom: 0.25rem;
         }
 
         .perfil-header p {
           opacity: 0.8;
+          color: white;
         }
 
         .perfil-main {
@@ -123,11 +124,12 @@ export default function PerfilPage() {
         }
 
         .info-section {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           padding: 1.5rem;
           margin-bottom: 1.5rem;
           box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
         }
 
         .section-header {
@@ -219,6 +221,6 @@ export default function PerfilPage() {
           padding: 1rem 0;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

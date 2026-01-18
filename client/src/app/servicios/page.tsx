@@ -3,66 +3,66 @@
 import { Check } from 'lucide-react';
 
 export default function ServicesPage() {
-    const services = [
-        {
-            title: "Mantenimiento de Césped Natural",
-            desc: "Planes integrales de fertilización, corte, aireación y resiembra. Utilizamos maquinaria de precisión para lograr el 'corte de estadio'.",
-            features: ["Corte helicoidal", "Aireación profunda", "Control de plagas", "Fertilización balanceada"]
-        },
-        {
-            title: "Césped Sintético y Híbrido",
-            desc: "Instalación y mantenimiento de superficies artificiales. Cepillado, descompactación y relleno de caucho para maximizar la vida útil.",
-            features: ["Descompactación mecánica", "Cepillado y nivelación", "Reparación de juntas", "Limpieza profunda"]
-        },
-        {
-            title: "Gestión Integral de Predios",
-            desc: "Nos encargamos de todo: personal, maquinaria, insumos y logística. Usted se ocupa del deporte, nosotros del campo.",
-            features: ["Personal in-situ", "Gestión de inventario", "Seguridad y limpieza", "Informes técnicos mensuales"]
-        },
-        {
-            title: "Capacitaciones y Consultoría",
-            desc: "Formamos a su personal en las mejores prácticas de canchero. Asesoramos en la construcción y renovación de campos.",
-            features: ["Talleres prácticos", "Manuales de procedimiento", "Auditoría de estado", "Planificación de obras"]
-        }
-    ];
+  const services = [
+    {
+      title: "Mantenimiento de Césped Natural",
+      desc: "Planes integrales de fertilización, corte, aireación y resiembra. Utilizamos maquinaria de precisión para lograr el 'corte de estadio'.",
+      features: ["Corte helicoidal", "Aireación profunda", "Control de plagas", "Fertilización balanceada"]
+    },
+    {
+      title: "Césped Sintético y Híbrido",
+      desc: "Instalación y mantenimiento de superficies artificiales. Cepillado, descompactación y relleno de caucho para maximizar la vida útil.",
+      features: ["Descompactación mecánica", "Cepillado y nivelación", "Reparación de juntas", "Limpieza profunda"]
+    },
+    {
+      title: "Gestión Integral de Predios",
+      desc: "Nos encargamos de todo: personal, maquinaria, insumos y logística. Usted se ocupa del deporte, nosotros del campo.",
+      features: ["Personal in-situ", "Gestión de inventario", "Seguridad y limpieza", "Informes técnicos mensuales"]
+    },
+    {
+      title: "Capacitaciones y Consultoría",
+      desc: "Formamos a su personal en las mejores prácticas de canchero. Asesoramos en la construcción y renovación de campos.",
+      features: ["Talleres prácticos", "Manuales de procedimiento", "Auditoría de estado", "Planificación de obras"]
+    }
+  ];
 
-    return (
-        <div className="services-page">
-            <header className="page-header">
-                <div className="container">
-                    <h1 className="page-title">Nuestros Servicios</h1>
-                    <p className="page-subtitle">Soluciones profesionales para cada necesidad.</p>
+  return (
+    <div className="services-page">
+      <header className="page-header">
+        <div className="container">
+          <h1 className="page-title">Nuestros Servicios</h1>
+          <p className="page-subtitle">Soluciones profesionales para cada necesidad.</p>
+        </div>
+      </header>
+
+      <section className="section">
+        <div className="container">
+          <div className="services-grid">
+            {services.map((service, index) => (
+              <div key={index} className="service-card">
+                <div className="service-header">
+                  <h3>{service.title}</h3>
                 </div>
-            </header>
-
-            <section className="section">
-                <div className="container">
-                    <div className="services-grid">
-                        {services.map((service, index) => (
-                            <div key={index} className="service-card">
-                                <div className="service-header">
-                                    <h3>{service.title}</h3>
-                                </div>
-                                <div className="service-body">
-                                    <p>{service.desc}</p>
-                                    <ul className="feature-list">
-                                        {service.features.map((f, i) => (
-                                            <li key={i}>
-                                                <Check size={16} className="check-icon" />
-                                                {f}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="service-body">
+                  <p>{service.desc}</p>
+                  <ul className="feature-list">
+                    {service.features.map((f, i) => (
+                      <li key={i}>
+                        <Check size={16} className="check-icon" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-            </section>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <style jsx>{`
+      <style jsx>{`
         .page-header {
-          background-color: var(--primary);
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 50%, #1a3d1a 100%);
           color: white;
           padding: 4rem 0;
           text-align: center;
@@ -70,13 +70,14 @@ export default function ServicesPage() {
 
         .page-title {
           font-size: 3rem;
-          color: white;
+          color: white !important;
           margin-bottom: 1rem;
         }
 
         .page-subtitle {
           font-size: 1.2rem;
           opacity: 0.9;
+          color: white;
         }
 
         .section {
@@ -90,7 +91,7 @@ export default function ServicesPage() {
         }
 
         .service-card {
-          background: white;
+          background: var(--surface);
           border: 1px solid var(--border);
           border-radius: var(--radius-md);
           overflow: hidden;
@@ -139,6 +140,6 @@ export default function ServicesPage() {
           flex-shrink: 0;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

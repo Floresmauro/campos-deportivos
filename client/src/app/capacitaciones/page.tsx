@@ -3,114 +3,114 @@
 import { Calendar, Clock, Users, MapPin, CheckCircle } from 'lucide-react';
 
 export default function CapacitacionesPage() {
-    const cursos = [
-        {
-            id: 1,
-            title: 'Manejo de Césped Híbrido',
-            description: 'Aprenda las técnicas modernas para el cuidado de superficies híbridas utilizadas en estadios de primera división.',
-            date: '15-17 Febrero 2026',
-            duration: '24 horas',
-            capacity: 20,
-            location: 'Centro de Capacitación - Avellaneda',
-            topics: ['Instalación', 'Riego y fertilización', 'Corte especializado', 'Reparación de daños']
-        },
-        {
-            id: 2,
-            title: 'Operación de Maquinaria Pesada',
-            description: 'Curso teórico-práctico sobre el manejo seguro de tractores, aireadores y cortadoras profesionales.',
-            date: '10-12 Marzo 2026',
-            duration: '16 horas',
-            capacity: 12,
-            location: 'Predio Racing Club',
-            topics: ['Seguridad operacional', 'Mantenimiento preventivo', 'Técnicas de corte', 'Diagnóstico de fallas']
-        },
-        {
-            id: 3,
-            title: 'Gestión de Predios Deportivos',
-            description: 'Formación para encargados de sede sobre administración integral de instalaciones deportivas.',
-            date: '5-6 Abril 2026',
-            duration: '12 horas',
-            capacity: 25,
-            location: 'Oficinas Centrales - CABA',
-            topics: ['Planificación de tareas', 'Gestión de personal', 'Control de inventario', 'Reportes técnicos']
-        }
-    ];
+  const cursos = [
+    {
+      id: 1,
+      title: 'Manejo de Césped Híbrido',
+      description: 'Aprenda las técnicas modernas para el cuidado de superficies híbridas utilizadas en estadios de primera división.',
+      date: '15-17 Febrero 2026',
+      duration: '24 horas',
+      capacity: 20,
+      location: 'Centro de Capacitación - Avellaneda',
+      topics: ['Instalación', 'Riego y fertilización', 'Corte especializado', 'Reparación de daños']
+    },
+    {
+      id: 2,
+      title: 'Operación de Maquinaria Pesada',
+      description: 'Curso teórico-práctico sobre el manejo seguro de tractores, aireadores y cortadoras profesionales.',
+      date: '10-12 Marzo 2026',
+      duration: '16 horas',
+      capacity: 12,
+      location: 'Predio Racing Club',
+      topics: ['Seguridad operacional', 'Mantenimiento preventivo', 'Técnicas de corte', 'Diagnóstico de fallas']
+    },
+    {
+      id: 3,
+      title: 'Gestión de Predios Deportivos',
+      description: 'Formación para encargados de sede sobre administración integral de instalaciones deportivas.',
+      date: '5-6 Abril 2026',
+      duration: '12 horas',
+      capacity: 25,
+      location: 'Oficinas Centrales - CABA',
+      topics: ['Planificación de tareas', 'Gestión de personal', 'Control de inventario', 'Reportes técnicos']
+    }
+  ];
 
-    return (
-        <div className="capacitaciones-page">
-            <header className="page-header">
-                <div className="container">
-                    <h1 className="page-title">Capacitaciones</h1>
-                    <p className="page-subtitle">Formación profesional para el sector deportivo.</p>
+  return (
+    <div className="capacitaciones-page">
+      <header className="page-header">
+        <div className="container">
+          <h1 className="page-title">Capacitaciones</h1>
+          <p className="page-subtitle">Formación profesional para el sector deportivo.</p>
+        </div>
+      </header>
+
+      <section className="section intro">
+        <div className="container">
+          <div className="intro-content">
+            <h2>Invertimos en conocimiento</h2>
+            <p>
+              En Campos Deportivos creemos que la excelencia nace de la formación continua.
+              Ofrecemos cursos y talleres para profesionales del mantenimiento de superficies deportivas,
+              dictados por expertos con décadas de experiencia en el rubro.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section cursos">
+        <div className="container">
+          <h2>Próximos Cursos</h2>
+          <div className="cursos-list">
+            {cursos.map((curso) => (
+              <div key={curso.id} className="curso-card">
+                <div className="curso-header">
+                  <h3>{curso.title}</h3>
+                  <span className="badge">Inscripciones Abiertas</span>
                 </div>
-            </header>
+                <p className="curso-desc">{curso.description}</p>
 
-            <section className="section intro">
-                <div className="container">
-                    <div className="intro-content">
-                        <h2>Invertimos en conocimiento</h2>
-                        <p>
-                            En Campos Deportivos creemos que la excelencia nace de la formación continua.
-                            Ofrecemos cursos y talleres para profesionales del mantenimiento de superficies deportivas,
-                            dictados por expertos con décadas de experiencia en el rubro.
-                        </p>
-                    </div>
+                <div className="curso-meta">
+                  <div className="meta-item">
+                    <Calendar size={16} />
+                    <span>{curso.date}</span>
+                  </div>
+                  <div className="meta-item">
+                    <Clock size={16} />
+                    <span>{curso.duration}</span>
+                  </div>
+                  <div className="meta-item">
+                    <Users size={16} />
+                    <span>Cupo: {curso.capacity} personas</span>
+                  </div>
+                  <div className="meta-item">
+                    <MapPin size={16} />
+                    <span>{curso.location}</span>
+                  </div>
                 </div>
-            </section>
 
-            <section className="section cursos">
-                <div className="container">
-                    <h2>Próximos Cursos</h2>
-                    <div className="cursos-list">
-                        {cursos.map((curso) => (
-                            <div key={curso.id} className="curso-card">
-                                <div className="curso-header">
-                                    <h3>{curso.title}</h3>
-                                    <span className="badge">Inscripciones Abiertas</span>
-                                </div>
-                                <p className="curso-desc">{curso.description}</p>
-
-                                <div className="curso-meta">
-                                    <div className="meta-item">
-                                        <Calendar size={16} />
-                                        <span>{curso.date}</span>
-                                    </div>
-                                    <div className="meta-item">
-                                        <Clock size={16} />
-                                        <span>{curso.duration}</span>
-                                    </div>
-                                    <div className="meta-item">
-                                        <Users size={16} />
-                                        <span>Cupo: {curso.capacity} personas</span>
-                                    </div>
-                                    <div className="meta-item">
-                                        <MapPin size={16} />
-                                        <span>{curso.location}</span>
-                                    </div>
-                                </div>
-
-                                <div className="curso-topics">
-                                    <h4>Temas a cubrir:</h4>
-                                    <ul>
-                                        {curso.topics.map((topic, i) => (
-                                            <li key={i}>
-                                                <CheckCircle size={14} />
-                                                {topic}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <button className="btn btn-primary">Solicitar Inscripción</button>
-                            </div>
-                        ))}
-                    </div>
+                <div className="curso-topics">
+                  <h4>Temas a cubrir:</h4>
+                  <ul>
+                    {curso.topics.map((topic, i) => (
+                      <li key={i}>
+                        <CheckCircle size={14} />
+                        {topic}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-            </section>
 
-            <style jsx>{`
+                <button className="btn btn-primary">Solicitar Inscripción</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <style jsx>{`
         .page-header {
-          background-color: var(--primary);
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 50%, #1a3d1a 100%);
           color: white;
           padding: 4rem 0;
           text-align: center;
@@ -118,13 +118,14 @@ export default function CapacitacionesPage() {
 
         .page-title {
           font-size: 3rem;
-          color: white;
+          color: white !important;
           margin-bottom: 1rem;
         }
 
         .page-subtitle {
           font-size: 1.2rem;
           opacity: 0.9;
+          color: white;
         }
 
         .section {
@@ -165,10 +166,12 @@ export default function CapacitacionesPage() {
         }
 
         .curso-card {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           padding: 2rem;
           box-shadow: var(--shadow-sm);
+          border-left: 4px solid var(--secondary);
+          border: 1px solid var(--border);
           border-left: 4px solid var(--secondary);
         }
 
@@ -248,6 +251,6 @@ export default function CapacitacionesPage() {
           color: var(--secondary);
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

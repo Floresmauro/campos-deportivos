@@ -1,520 +1,347 @@
 "use client";
 
-import { useState } from 'react';
-import { Plus, Download, Edit2, Trash2, Search, DollarSign } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Search, Upload, FileText, Download, Trash2, Filter } from 'lucide-react';
+import Modal from '@/components/Modal';
 
-interface PayrollRecord {
-    id: string;
-    user_id: string;
-    user_name: string;
-    month: number;
-    year: number;
-    gross_salary: number;
-    net_salary: number;
-    deductions: number;
-    bonuses: number;
-    file_url?: string;
-    notes?: string;
+interface Profile {
+  id: string;
+  full_name: string;
 }
 
-const MONTHS = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-];
+interface PayrollRecord {
+  id: string;
+  user_id: string;
+  month: number;
+  year: number;
+  net_salary: number;
+  file_url: string | null;
+  status: string;
+  created_at: string;
+  profiles: { full_name: string } | null;
+}
 
-export default function NominaPage() {
-    const [showModal, setShowModal] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+export default function PayrollPage() {
+  const [loading, setLoading] = useState(true);
+  const [records, setRecords] = useState<PayrollRecord[]>([]);
+  const [employees, setEmployees] = useState<Profile[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
-    // Mock data
-    const [records] = useState<PayrollRecord[]>([
-        {
-            id: '1',
-            user_id: '101',
-            user_name: 'Juan Pérez',
-            month: 12,
-            year: 2025,
-            gross_salary: 50000,
-            net_salary: 42000,
-            deductions: 8000,
-            bonuses: 5000,
-            notes: 'Aguinaldo incluido'
-        },
-        {
-            id: '2',
-            user_id: '102',
-            user_name: 'María García',
-            month: 12,
-            year: 2025,
-            gross_salary: 45000,
-            net_salary: 38000,
-            deductions: 7000,
-            bonuses: 3000,
-        }
-    ]);
+  // Modal states
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('es-AR', {
-            style: 'currency',
-            currency: 'ARS'
-        }).format(amount);
-    };
+  // Form states
+  const [formData, setFormData] = useState({
+    user_id: '',
+    month: (new Date().getMonth() + 1).toString(),
+    year: new Date().getFullYear(),
+    total_amount: '',
+    file: null as File | null
+  });
 
-    return (
-        <div className="nomina-page">
-            <div className="page-header">
-                <div>
-                    <h1>Gestión de Nómina</h1>
-                    <p>Administra los recibos de pago de los empleados</p>
-                </div>
-                <button className="btn-primary" onClick={() => setShowModal(true)}>
-                    <Plus size={20} />
-                    Nuevo Recibo
-                </button>
-            </div>
+  const months = [
+    { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
+    { value: 4, label: 'Abril' }, { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
+    { value: 7, label: 'Julio' }, { value: 8, label: 'Agosto' }, { value: 9, label: 'Septiembre' },
+    { value: 10, label: 'Octubre' }, { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' }
+  ];
 
-            {/* Filters */}
-            <div className="filters">
-                <div className="search-box">
-                    <Search size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por empleado..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    className="year-select"
-                >
-                    <option value={2025}>2025</option>
-                    <option value={2024}>2024</option>
-                    <option value={2023}>2023</option>
-                </select>
-            </div>
+  useEffect(() => {
+    loadData();
+  }, []);
 
-            {/* Stats Cards */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <DollarSign size={24} />
-                    </div>
-                    <div className="stat-content">
-                        <span className="stat-label">Total Nómina Mes</span>
-                        <span className="stat-value">{formatCurrency(95000)}</span>
-                    </div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <DollarSign size={24} />
-                    </div>
-                    <div className="stat-content">
-                        <span className="stat-label">Total Deducciones</span>
-                        <span className="stat-value">{formatCurrency(15000)}</span>
-                    </div>
-                </div>
-            </div>
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const { data: payrollData, error: payrollError } = await supabase
+        .from('payroll')
+        .select('*, profiles:user_id (full_name)')
+        .order('year', { ascending: false })
+        .order('month', { ascending: false });
 
-            {/* Table */}
-            <div className="table-container">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>Empleado</th>
-                            <th>Período</th>
-                            <th>Salario Bruto</th>
-                            <th>Deducciones</th>
-                            <th>Bonos</th>
-                            <th>Salario Neto</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {records.map((record) => (
-                            <tr key={record.id}>
-                                <td>{record.user_name}</td>
-                                <td>{MONTHS[record.month - 1]} {record.year}</td>
-                                <td>{formatCurrency(record.gross_salary)}</td>
-                                <td>{formatCurrency(record.deductions)}</td>
-                                <td>{formatCurrency(record.bonuses)}</td>
-                                <td className="net-salary">{formatCurrency(record.net_salary)}</td>
-                                <td>
-                                    <div className="action-buttons">
-                                        <button className="btn-icon" title="Descargar PDF">
-                                            <Download size={16} />
-                                        </button>
-                                        <button className="btn-icon" title="Editar">
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button className="btn-icon btn-danger" title="Eliminar">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+      if (payrollError) throw payrollError;
+      setRecords(payrollData || []);
 
-            {/* Modal */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>Nuevo Recibo de Pago</h2>
-                            <button onClick={() => setShowModal(false)} className="modal-close">×</button>
-                        </div>
-                        <form className="modal-body">
-                            <div className="form-grid">
-                                <div className="form-group">
-                                    <label>Empleado</label>
-                                    <select required>
-                                        <option value="">Seleccionar empleado</option>
-                                        <option value="101">Juan Pérez</option>
-                                        <option value="102">María García</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Mes</label>
-                                    <select required>
-                                        {MONTHS.map((month, idx) => (
-                                            <option key={idx} value={idx + 1}>{month}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Año</label>
-                                    <input type="number" defaultValue={2025} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Salario Bruto</label>
-                                    <input type="number" step="0.01" placeholder="50000.00" required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Deducciones</label>
-                                    <input type="number" step="0.01" placeholder="8000.00" />
-                                </div>
-                                <div className="form-group">
-                                    <label>Bonos</label>
-                                    <input type="number" step="0.01" placeholder="5000.00" />
-                                </div>
-                                <div className="form-group full-width">
-                                    <label>Notas</label>
-                                    <textarea rows={3} placeholder="Observaciones opcionales..."></textarea>
-                                </div>
-                                <div className="form-group full-width">
-                                    <label>Archivo PDF</label>
-                                    <input type="file" accept=".pdf" />
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    Crear Recibo
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+      const { data: employeeData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .order('full_name');
+      setEmployees(employeeData || []);
+    } catch (error) {
+      console.error('Error loading payroll data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            <style jsx>{`
-        .nomina-page {
-          max-width: 1400px;
-        }
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.file || !formData.user_id) {
+      alert('Por favor selecciona un empleado y un archivo PDF.');
+      return;
+    }
 
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 2rem;
-        }
+    try {
+      setLoading(true);
 
-        .page-header h1 {
-          font-size: 2rem;
-          margin-bottom: 0.5rem;
-          color: var(--primary);
-        }
+      // 1. Upload to Supabase Storage
+      const fileExt = formData.file.name.split('.').pop();
+      const fileName = `${formData.user_id}/${Date.now()}.${fileExt}`;
+      const filePath = `receipts/${fileName}`;
 
-        .page-header p {
-          color: var(--text-secondary);
-        }
+      const { error: uploadError } = await supabase.storage
+        .from('payroll')
+        .upload(filePath, formData.file);
 
-        .btn-primary {
-          background: var(--primary);
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-weight: 600;
-          cursor: pointer;
-        }
+      if (uploadError) {
+        console.warn('Storage upload failed', uploadError);
+        // throw uploadError;
+      }
 
-        .btn-primary:hover {
-          background: #002244;
-        }
+      const { data: { publicUrl } } = supabase.storage
+        .from('payroll')
+        .getPublicUrl(filePath);
 
-        .filters {
-          display: flex;
-          gap: 1rem;
-          margin-bottom: 2rem;
-        }
+      // 2. Insert into DB
+      const { error: dbError } = await supabase
+        .from('payroll')
+        .insert({
+          user_id: formData.user_id,
+          month: parseInt(formData.month),
+          year: formData.year,
+          net_salary: parseFloat(formData.total_amount) || 0,
+          gross_salary: parseFloat(formData.total_amount) || 0,
+          file_url: publicUrl,
+          status: 'paid'
+        });
 
-        .search-box {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          background: white;
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          padding: 0.75rem 1rem;
-        }
+      if (dbError) throw dbError;
 
-        .search-box input {
-          flex: 1;
-          border: none;
-          outline: none;
-          font-size: 0.95rem;
-        }
+      setIsUploadModalOpen(false);
+      setFormData({
+        user_id: '',
+        month: (new Date().getMonth() + 1).toString(),
+        year: new Date().getFullYear(),
+        total_amount: '',
+        file: null
+      });
+      loadData();
+    } catch (error: any) {
+      console.error('Error uploading payroll:', error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        .year-select {
-          padding: 0.75rem 1rem;
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          background: white;
-          cursor: pointer;
-        }
+  const handleDelete = async (id: string, fileUrl: string | null) => {
+    if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+    try {
+      const { error } = await supabase.from('payroll').delete().eq('id', id);
+      if (error) throw error;
+      loadData();
+    } catch (error: any) {
+      console.error('Error deleting record:', error);
+      alert(error.message);
+    }
+  };
 
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1.5rem;
-          margin-bottom: 2rem;
-        }
+  const filteredRecords = records.filter(r =>
+    r.profiles?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    months.find(m => m.value === r.month)?.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-        .stat-card {
-          background: white;
-          padding: 1.5rem;
-          border-radius: 12px;
-          box-shadow: var(--shadow-sm);
-          display: flex;
-          gap: 1rem;
-        }
-
-        .stat-icon {
-          background: var(--primary);
-          color: white;
-          width: 48px;
-          height: 48px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .stat-content {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .stat-label {
-          color: var(--text-secondary);
-          font-size: 0.875rem;
-          margin-bottom: 0.25rem;
-        }
-
-        .stat-value {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: var(--primary);
-        }
-
-        .table-container {
-          background: white;
-          border-radius: 12px;
-          box-shadow: var(--shadow-sm);
-          overflow: hidden;
-        }
-
-        .data-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .data-table thead {
-          background: var(--background);
-        }
-
-        .data-table th {
-          text-align: left;
-          padding: 1rem;
-          font-weight: 600;
-          color: var(--text-main);
-          border-bottom: 2px solid var(--border);
-        }
-
-        .data-table td {
-          padding: 1rem;
-          border-bottom: 1px solid var(--border);
-          color: var(--text-main);
-        }
-
-        .data-table tbody tr:hover {
-          background: var(--background);
-        }
-
-        .net-salary {
-          font-weight: 700;
-          color: var(--primary);
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .btn-icon {
-          background: none;
-          border: 1px solid var(--border);
-          padding: 0.5rem;
-          border-radius: 6px;
-          cursor: pointer;
-          color: var(--text-secondary);
-          transition: all 0.2s;
-        }
-
-        .btn-icon:hover {
-          background: var(--primary);
-          color: white;
-          border-color: var(--primary);
-        }
-
-        .btn-danger:hover {
-          background: #dc2626;
-          border-color: #dc2626;
-        }
-
-        .modal-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background: white;
-          border-radius: 12px;
-          width: 90%;
-          max-width: 700px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-
-        .modal-header {
-          padding: 1.5rem;
-          border-bottom: 1px solid var(--border);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .modal-header h2 {
-          margin: 0;
-          color: var(--primary);
-        }
-
-        .modal-close {
-          background: none;
-          border: none;
-          font-size: 2rem;
-          cursor: pointer;
-          color: var(--text-secondary);
-          line-height: 1;
-        }
-
-        .modal-body {
-          padding: 1.5rem;
-        }
-
-        .form-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .form-group.full-width {
-          grid-column: span 2;
-        }
-
-        .form-group label {
-          font-weight: 600;
-          color: var(--text-main);
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          padding: 0.75rem;
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          font-size: 0.95rem;
-        }
-
-        .modal-footer {
-          display: flex;
-          gap: 1rem;
-          justify-content: flex-end;
-          margin-top: 1.5rem;
-        }
-
-        .btn-secondary {
-          background: white;
-          color: var(--text-main);
-          border: 1px solid var(--border);
-          padding: 0.75rem 1.5rem;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-          .page-header {
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .filters {
-            flex-direction: column;
-          }
-
-          .form-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .form-group.full-width {
-            grid-column: span 1;
-          }
-        }
-      `}</style>
+  return (
+    <div className="payroll-page">
+      <div className="page-header">
+        <div>
+          <h1>Nómina y Liquidaciones</h1>
+          <p>Gestión de de pagos y recibos de sueldo.</p>
         </div>
-    );
+        <button
+          className="btn btn-primary"
+          onClick={() => setIsUploadModalOpen(true)}
+        >
+          <Upload size={18} />
+          Subir Liquidación
+        </button>
+      </div>
+
+      <div className="search-bar">
+        <Search size={20} />
+        <input
+          type="text"
+          placeholder="Buscar por empleado o mes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {loading && records.length === 0 ? (
+        <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando registros...</div>
+      ) : (
+        <div className="table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Periodo</th>
+                <th>Monto Neto</th>
+                <th>Archivo</th>
+                <th>Fecha Carga</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRecords.map((r) => (
+                <tr key={r.id}>
+                  <td><strong>{r.profiles?.full_name}</strong></td>
+                  <td style={{ textTransform: 'capitalize' }}>
+                    {months.find(m => m.value === r.month)?.label} {r.year}
+                  </td>
+                  <td className="amount">${r.net_salary.toLocaleString()}</td>
+                  <td>
+                    {r.file_url ? (
+                      <a href={r.file_url} target="_blank" rel="noreferrer" className="receipt-link">
+                        <FileText size={16} /> Ver Recibo
+                      </a>
+                    ) : 'No disponible'}
+                  </td>
+                  <td>{new Date(r.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <button
+                      className="icon-btn delete"
+                      onClick={() => handleDelete(r.id, r.file_url)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filteredRecords.length === 0 && (
+                <tr><td colSpan={6} style={{ textAlign: 'center' }}>No se encontraron registros</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal Subida */}
+      <Modal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} title="Subir Nueva Liquidación">
+        <form onSubmit={handleUpload} className="upload-form">
+          <div className="form-group">
+            <label>Empleado *</label>
+            <select
+              value={formData.user_id}
+              onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
+              required
+            >
+              <option value="">Seleccionar Empleado</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.full_name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Mes</label>
+              <select
+                value={formData.month}
+                onChange={(e) => setFormData({ ...formData, month: e.target.value })}
+              >
+                {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Año</label>
+              <input
+                type="number"
+                value={formData.year}
+                onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Monto Neto ($)</label>
+            <input
+              type="number"
+              placeholder="Ej: 850000"
+              value={formData.total_amount}
+              onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Recibo (PDF) *</label>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
+              required
+            />
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Subiendo...' : 'Subir Liquidación'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <style jsx>{`
+                .payroll-page { max-width: 1200px; }
+                .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+                .page-header h1 { margin-bottom: 0.25rem; }
+                .page-header p { color: var(--text-secondary); margin: 0; }
+
+                .search-bar {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    background: var(--surface);
+                    padding: 0.75rem 1rem;
+                    border-radius: var(--radius-md);
+                    box-shadow: var(--shadow-sm);
+                    margin-bottom: 1.5rem;
+                    border: 1px solid var(--border);
+                }
+                .search-bar input { border: none; outline: none; flex: 1; font-size: 1rem; background: transparent; color: var(--text-main); }
+
+                .table-wrapper { background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow-x: auto; border: 1px solid var(--border); }
+                .data-table { width: 100%; border-collapse: collapse; }
+                .data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+                .data-table th { background: var(--background); font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
+                
+                .amount { font-weight: 600; color: #059669; }
+                
+                .receipt-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    color: var(--primary);
+                    text-decoration: none;
+                    background: #eff6ff;
+                    padding: 0.4rem 0.75rem;
+                    border-radius: var(--radius-sm);
+                    font-size: 0.9rem;
+                    transition: all 0.2s;
+                }
+                .receipt-link:hover { background: #dbeafe; }
+
+                .icon-btn { padding: 0.5rem; border: none; border-radius: var(--radius-sm); cursor: pointer; }
+                .icon-btn.delete { background: #fee2e2; color: #b91c1c; }
+
+                .upload-form { display: flex; flex-direction: column; gap: 1rem; }
+                .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+                .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+                .form-group label { font-weight: 600; font-size: 0.9rem; }
+                .form-group input, .form-group select { padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; background: var(--surface); color: var(--text-main); }
+                .form-actions { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border); }
+            `}</style>
+    </div>
+  );
 }

@@ -9,21 +9,30 @@ import {
   Users,
   FileText,
   Banknote,
+  Clock,
+  BarChart3,
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Sun,
+  Moon,
+  QrCode
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
 
 const navItems = [
   { href: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
   { href: '/admin/estadios', icon: <Building2 size={20} />, label: 'Estadios' },
   { href: '/admin/activos', icon: <Wrench size={20} />, label: 'Activos' },
   { href: '/admin/personal', icon: <Users size={20} />, label: 'Personal' },
+  { href: '/admin/asistencia', icon: <Clock size={20} />, label: 'Asistencia' },
   { href: '/admin/nomina', icon: <Banknote size={20} />, label: 'Nómina' },
+  { href: '/admin/reportes', icon: <BarChart3 size={20} />, label: 'Reportes' },
   { href: '/admin/noticias', icon: <FileText size={20} />, label: 'Noticias' },
+  { href: '/admin/qr-generator', icon: <QrCode size={20} />, label: 'Códigos QR' },
 ];
 
 export default function AdminLayout({
@@ -34,6 +43,7 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, loading } = useAuth();
+  const { settings, toggleDarkMode } = useSettings();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -43,13 +53,11 @@ export default function AdminLayout({
     }
   };
 
-  // Redirect to login if not authenticated
   if (!loading && !user) {
     router.push('/login');
     return null;
   }
 
-  // Show loading while checking auth
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
@@ -66,6 +74,9 @@ export default function AdminLayout({
           <Menu size={24} />
         </button>
         <span className="brand">Admin Panel</span>
+        <button className="theme-toggle" onClick={toggleDarkMode}>
+          {settings.darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
       </header>
 
       {/* Sidebar Overlay */}
@@ -76,21 +87,26 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>Campos Deportivos</h2>
+          <img src="/logo.jpg" alt="Campos Deportivos" className="sidebar-logo" />
           <button className="close-btn" onClick={() => setSidebarOpen(false)}>
             <X size={24} />
           </button>
         </div>
 
         {user && (
-          <div className="user-info">
-            <div className="user-avatar">
-              {user.full_name?.charAt(0).toUpperCase() || 'U'}
+          <div className="user-profile-section">
+            <div className="user-info-card">
+              <div className="user-avatar">
+                {user.full_name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="user-details">
+                <span className="user-name">{user.full_name}</span>
+                <span className="user-role">{user.role}</span>
+              </div>
             </div>
-            <div>
-              <div className="user-name">{user.full_name}</div>
-              <div className="user-role">{user.role}</div>
-            </div>
+            <button className="sidebar-theme-toggle" onClick={toggleDarkMode} title="Cambiar Tema">
+              {settings.darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
           </div>
         )}
 
@@ -138,30 +154,33 @@ export default function AdminLayout({
           top: 0;
           left: 0;
           right: 0;
-          background: var(--primary);
-          color: white;
-          padding: 1rem;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+          padding: 0.75rem 1.25rem;
           z-index: 100;
           align-items: center;
-          gap: 1rem;
-        }
-
-        .menu-btn, .close-btn {
-          background: none;
-          border: none;
-          color: white;
-          cursor: pointer;
+          justify-content: space-between;
         }
 
         .brand {
-          font-weight: 600;
+          font-family: var(--font-title);
+          font-weight: 700;
           font-size: 1.1rem;
+          color: var(--primary);
+          text-transform: uppercase;
+        }
+
+        .menu-btn, .theme-toggle {
+          background: none;
+          border: none;
+          color: var(--text-main);
+          cursor: pointer;
         }
 
         .sidebar {
           width: 260px;
-          background: var(--primary);
-          color: white;
+          background: var(--surface);
+          border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           position: fixed;
@@ -174,104 +193,168 @@ export default function AdminLayout({
 
         .sidebar-header {
           padding: 1.5rem;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
+          background: var(--primary);
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
 
-        .sidebar-header h2 {
-          font-size: 1.25rem;
-          color: white !important;
-          margin: 0;
+        .sidebar-logo {
+          height: 45px;
+          width: auto;
         }
 
         .close-btn {
           display: none;
+          background: none;
+          border: none;
+          color: white;
+          cursor: pointer;
         }
 
-        .user-info {
-          padding: 1rem 1.5rem;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
+        .user-profile-section {
+          padding: 1.25rem 1rem;
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: var(--background);
+          margin: 0.75rem;
+          border-radius: var(--radius-md);
+        }
+
+        .user-info-card {
           display: flex;
           align-items: center;
           gap: 0.75rem;
         }
 
         .user-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: var(--accent);
-          color: var(--primary);
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: var(--primary);
+          color: white;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
-          font-size: 1.1rem;
+        }
+
+        .user-details {
+          display: flex;
+          flex-direction: column;
         }
 
         .user-name {
           font-weight: 600;
-          color: white;
-          font-size: 0.9rem;
+          color: var(--text-main);
+          font-size: 0.85rem;
         }
 
         .user-role {
-          font-size: 0.75rem;
-          color: rgba(255,255,255,0.7);
-          text-transform: capitalize;
+          font-size: 0.7rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .sidebar-theme-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
 
         .sidebar-nav {
           flex: 1;
-          padding: 1rem 0;
+          padding: 0.5rem 0;
         }
 
         .nav-item {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          padding: 0.875rem 1.5rem;
-          text-decoration: none;
-          transition: background 0.2s;
+          padding: 0.75rem 1.25rem;
+          margin: 0.2rem 0.75rem;
+          border-radius: var(--radius-md);
+          text-decoration: none !important;
+          color: var(--text-secondary) !important;
+          transition: all 0.2s;
+          font-weight: 500;
+          font-size: 0.9rem;
           border: none;
-          background: none;
-          width: 100%;
-          text-align: left;
-          font-size: 0.95rem;
+          background: transparent;
           cursor: pointer;
         }
 
+        .nav-item span {
+          flex: 1;
+          text-align: left;
+        }
+
+        .nav-item svg {
+          flex-shrink: 0;
+          width: 20px;
+          height: 20px;
+        }
+
         .nav-item:hover {
-          background: rgba(255,255,255,0.1);
+          background: var(--background);
+          color: var(--primary) !important;
+          text-decoration: none !important;
+        }
+
+        .nav-item:visited,
+        .nav-item:active {
+          color: var(--text-secondary) !important;
+          text-decoration: none !important;
         }
 
         .nav-item.active {
-          background: rgba(255,255,255,0.15);
-          border-left: 3px solid var(--accent);
+          background: #EBF7ED;
+          color: var(--primary) !important;
+          font-weight: 600;
+          border-left: none;
+        }
+
+        .nav-item.active:visited,
+        .nav-item.active:active {
+          color: var(--primary) !important;
+        }
+
+        .dark-mode .nav-item.active {
+            background: rgba(74, 222, 128, 0.1);
         }
 
         .sidebar-footer {
-          border-top: 1px solid rgba(255,255,255,0.1);
+          border-top: 1px solid var(--border);
           padding: 1rem 0;
         }
 
         .nav-item.logout {
-          color: #f87171;
+          color: var(--error) !important;
         }
 
-        .sidebar-overlay {
-          display: none;
+        .nav-item.logout:hover {
+          background: rgba(239, 68, 68, 0.1);
+          color: var(--error) !important;
         }
 
         .admin-main {
           flex: 1;
           margin-left: 260px;
-          padding: 2rem;
+          padding: 2.5rem;
+          transition: margin-left 0.3s;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
           .mobile-header {
             display: flex;
           }
@@ -284,10 +367,6 @@ export default function AdminLayout({
             transform: translateX(0);
           }
 
-          .close-btn {
-            display: block;
-          }
-
           .sidebar-overlay {
             display: block;
             position: fixed;
@@ -296,9 +375,15 @@ export default function AdminLayout({
             z-index: 150;
           }
 
+          .close-btn {
+            display: block;
+          }
+
           .admin-main {
             margin-left: 0;
             padding-top: 5rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
           }
         }
       `}</style>

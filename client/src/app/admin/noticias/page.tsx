@@ -4,112 +4,112 @@ import { useState } from 'react';
 import { Plus, Pencil, Trash2, Eye, EyeOff, Calendar } from 'lucide-react';
 
 export default function NoticiasPage() {
-    const [showEditor, setShowEditor] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
 
-    // Mock data
-    const noticias = [
-        {
-            id: 1,
-            title: 'Renovación del estadio de Racing completada',
-            excerpt: 'Terminamos exitosamente la renovación completa del césped del Cilindro de Avellaneda.',
-            published: true,
-            date: '12/01/2026'
-        },
-        {
-            id: 2,
-            title: 'Nueva maquinaria incorporada a la flota',
-            excerpt: 'Adquirimos 3 nuevos tractores John Deere para mejorar nuestros servicios.',
-            published: true,
-            date: '05/01/2026'
-        },
-        {
-            id: 3,
-            title: 'Próxima capacitación: Manejo de césped híbrido',
-            excerpt: 'Inscripciones abiertas para el curso de febrero 2026.',
-            published: false,
-            date: '20/12/2025'
-        },
-    ];
+  // Mock data
+  const noticias = [
+    {
+      id: 1,
+      title: 'Renovación del estadio de Racing completada',
+      excerpt: 'Terminamos exitosamente la renovación completa del césped del Cilindro de Avellaneda.',
+      published: true,
+      date: '12/01/2026'
+    },
+    {
+      id: 2,
+      title: 'Nueva maquinaria incorporada a la flota',
+      excerpt: 'Adquirimos 3 nuevos tractores John Deere para mejorar nuestros servicios.',
+      published: true,
+      date: '05/01/2026'
+    },
+    {
+      id: 3,
+      title: 'Próxima capacitación: Manejo de césped híbrido',
+      excerpt: 'Inscripciones abiertas para el curso de febrero 2026.',
+      published: false,
+      date: '20/12/2025'
+    },
+  ];
 
-    return (
-        <div className="noticias-page">
-            <div className="page-header">
-                <div>
-                    <h1>Gestión de Noticias</h1>
-                    <p>Administre el blog y novedades del sitio web.</p>
-                </div>
-                <button className="btn btn-primary" onClick={() => setShowEditor(true)}>
-                    <Plus size={18} />
-                    Nueva Noticia
+  return (
+    <div className="noticias-page">
+      <div className="page-header">
+        <div>
+          <h1>Gestión de Noticias</h1>
+          <p>Administre el blog y novedades del sitio web.</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowEditor(true)}>
+          <Plus size={18} />
+          Nueva Noticia
+        </button>
+      </div>
+
+      {/* Editor Modal */}
+      {showEditor && (
+        <div className="modal-overlay" onClick={() => setShowEditor(false)}>
+          <div className="modal editor-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Nueva Noticia</h2>
+            <form className="editor-form">
+              <div className="form-group">
+                <label>Título</label>
+                <input type="text" placeholder="Ingrese el título de la noticia" />
+              </div>
+              <div className="form-group">
+                <label>Extracto</label>
+                <textarea rows={2} placeholder="Breve descripción para la lista..."></textarea>
+              </div>
+              <div className="form-group">
+                <label>Contenido</label>
+                <textarea rows={8} placeholder="Escriba el contenido completo de la noticia..."></textarea>
+              </div>
+              <div className="form-group">
+                <label>Imagen Principal (URL)</label>
+                <input type="text" placeholder="https://..." />
+              </div>
+              <div className="form-row">
+                <label className="checkbox-label">
+                  <input type="checkbox" />
+                  Publicar inmediatamente
+                </label>
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEditor(false)}>
+                  Cancelar
                 </button>
+                <button type="submit" className="btn btn-primary">
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* News List */}
+      <div className="noticias-list">
+        {noticias.map((noticia) => (
+          <div key={noticia.id} className="noticia-card">
+            <div className="noticia-content">
+              <div className="noticia-status">
+                {noticia.published ? (
+                  <span className="status published"><Eye size={14} /> Publicada</span>
+                ) : (
+                  <span className="status draft"><EyeOff size={14} /> Borrador</span>
+                )}
+                <span className="date"><Calendar size={14} /> {noticia.date}</span>
+              </div>
+              <h3>{noticia.title}</h3>
+              <p>{noticia.excerpt}</p>
             </div>
-
-            {/* Editor Modal */}
-            {showEditor && (
-                <div className="modal-overlay" onClick={() => setShowEditor(false)}>
-                    <div className="modal editor-modal" onClick={(e) => e.stopPropagation()}>
-                        <h2>Nueva Noticia</h2>
-                        <form className="editor-form">
-                            <div className="form-group">
-                                <label>Título</label>
-                                <input type="text" placeholder="Ingrese el título de la noticia" />
-                            </div>
-                            <div className="form-group">
-                                <label>Extracto</label>
-                                <textarea rows={2} placeholder="Breve descripción para la lista..."></textarea>
-                            </div>
-                            <div className="form-group">
-                                <label>Contenido</label>
-                                <textarea rows={8} placeholder="Escriba el contenido completo de la noticia..."></textarea>
-                            </div>
-                            <div className="form-group">
-                                <label>Imagen Principal (URL)</label>
-                                <input type="text" placeholder="https://..." />
-                            </div>
-                            <div className="form-row">
-                                <label className="checkbox-label">
-                                    <input type="checkbox" />
-                                    Publicar inmediatamente
-                                </label>
-                            </div>
-                            <div className="form-actions">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowEditor(false)}>
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="btn btn-primary">
-                                    Guardar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* News List */}
-            <div className="noticias-list">
-                {noticias.map((noticia) => (
-                    <div key={noticia.id} className="noticia-card">
-                        <div className="noticia-content">
-                            <div className="noticia-status">
-                                {noticia.published ? (
-                                    <span className="status published"><Eye size={14} /> Publicada</span>
-                                ) : (
-                                    <span className="status draft"><EyeOff size={14} /> Borrador</span>
-                                )}
-                                <span className="date"><Calendar size={14} /> {noticia.date}</span>
-                            </div>
-                            <h3>{noticia.title}</h3>
-                            <p>{noticia.excerpt}</p>
-                        </div>
-                        <div className="noticia-actions">
-                            <button className="icon-btn edit"><Pencil size={16} /></button>
-                            <button className="icon-btn delete"><Trash2 size={16} /></button>
-                        </div>
-                    </div>
-                ))}
+            <div className="noticia-actions">
+              <button className="icon-btn edit"><Pencil size={16} /></button>
+              <button className="icon-btn delete"><Trash2 size={16} /></button>
             </div>
+          </div>
+        ))}
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .noticias-page {
           max-width: 1000px;
         }
@@ -139,12 +139,13 @@ export default function NoticiasPage() {
         }
 
         .noticia-card {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           padding: 1.5rem;
           display: flex;
           gap: 1.5rem;
           box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
         }
 
         .noticia-content {
@@ -208,7 +209,7 @@ export default function NoticiasPage() {
         }
 
         .modal {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           padding: 2rem;
           width: 100%;
@@ -216,7 +217,7 @@ export default function NoticiasPage() {
           margin-top: 2rem;
         }
 
-        .modal h2 { margin-bottom: 1.5rem; }
+        .modal h2 { margin-bottom: 1.5rem; color: var(--text-main); }
 
         .form-group {
           margin-bottom: 1.25rem;
@@ -236,6 +237,8 @@ export default function NoticiasPage() {
           border-radius: var(--radius-sm);
           font-family: inherit;
           font-size: 1rem;
+          background: var(--background);
+          color: var(--text-main);
         }
 
         .form-row {
@@ -263,6 +266,6 @@ export default function NoticiasPage() {
           flex: 1;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

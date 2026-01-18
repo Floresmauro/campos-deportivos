@@ -1,7 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, Shield, Award } from 'lucide-react';
+import { CheckCircle, Shield, Award, ArrowRight } from 'lucide-react';
+import ImageGrid from '@/components/ImageGrid';
+
+const estadiosData = [
+  {
+    url: 'https://images.unsplash.com/photo-1556011522-aaaff071869e?q=80&w=800&auto=format&fit=crop',
+    estadio: 'Arena Central',
+    descripcion: 'Campo profesional de césped sintético alta densidad.'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1521733606456-621813f28392?q=80&w=800&auto=format&fit=crop',
+    estadio: 'Complejo Norte',
+    descripcion: 'Sede con 5 campos de fútbol y vestuarios premium.'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop',
+    estadio: 'Estadio del Este',
+    descripcion: 'Césped natural nivel FIFA Pro.'
+  },
+];
 
 export default function Home() {
   return (
@@ -18,14 +37,14 @@ export default function Home() {
             <Link href="/servicios" className="btn btn-primary">
               Nuestros Servicios
             </Link>
-            <Link href="/contacto" className="btn btn-secondary">
+            <Link href="/contacto" className="btn btn-outline">
               Contactar
             </Link>
           </div>
         </div>
       </section>
 
-      {/* About Section - University Style */}
+      {/* About Section */}
       <section className="section about">
         <div className="container">
           <div className="about__grid">
@@ -58,10 +77,28 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Featured Fields Section (TIPO INSTAGRAM) */}
+      <section className="section fields-grid">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-label">Portafolio</span>
+            <h2>Nuestros Campos</h2>
+            <p>Instalaciones de primer nivel diseñadas para el rendimiento deportivo máximo.</p>
+          </div>
+          <ImageGrid images={estadiosData} />
+          <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+            <Link href="/estadios" className="btn btn-primary">
+              Ver todas las sedes <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="section features">
         <div className="container">
           <div className="section-header">
+            <span className="section-label">Servicios</span>
             <h2>Nuestra Propuesta de Valor</h2>
             <p>Soluciones integrales para la infraestructura deportiva moderna.</p>
           </div>
@@ -90,8 +127,8 @@ export default function Home() {
         /* Hero */
         .hero {
           position: relative;
-          height: 600px;
-          background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&q=80'); /* Sample Stadium Image */
+          height: 650px;
+          background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&q=80');
           background-size: cover;
           background-position: center;
           display: flex;
@@ -105,7 +142,7 @@ export default function Home() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(rgba(0,51,102,0.8), rgba(0,30,60,0.6));
+          background: linear-gradient(to right, rgba(45, 90, 39, 0.9), rgba(0,0,0,0.4));
         }
 
         .hero__content {
@@ -115,43 +152,57 @@ export default function Home() {
         }
 
         .hero__title {
-          font-size: 3.5rem;
+          font-size: 4rem;
           color: white;
           margin-bottom: 1.5rem;
           line-height: 1.1;
+          font-family: var(--font-title);
+          text-transform: uppercase;
         }
 
         .hero__subtitle {
-          font-size: 1.25rem;
+          font-size: 1.35rem;
           margin-bottom: 2.5rem;
-          opacity: 0.9;
+          opacity: 0.95;
+          max-width: 600px;
         }
 
         .hero__actions {
           display: flex;
-          gap: 1rem;
+          gap: 1.25rem;
+        }
+
+        .btn-outline {
+            border: 2px solid white;
+            color: white;
+            background: transparent;
+        }
+        
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
         }
 
         /* Sections */
         .section {
-          padding: 5rem 0;
+          padding: 6rem 0;
         }
 
         .section-label {
-          color: var(--secondary);
+          color: var(--primary);
           text-transform: uppercase;
           font-weight: 700;
           font-size: 0.85rem;
-          letter-spacing: 1px;
+          letter-spacing: 2px;
           display: block;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.75rem;
         }
 
         /* About */
         .about__grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 4rem;
+          gap: 5rem;
           align-items: center;
         }
 
@@ -162,12 +213,18 @@ export default function Home() {
         }
 
         .stat-card {
-          background: white;
-          padding: 2rem;
+          background: var(--surface);
+          padding: 2.5rem;
           border-radius: var(--radius-md);
-          box-shadow: var(--shadow-md);
+          box-shadow: var(--shadow-sm);
           text-align: center;
           border-top: 4px solid var(--primary);
+          transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
         }
 
         .stat-card:nth-child(3) {
@@ -176,20 +233,27 @@ export default function Home() {
 
         .stat-number {
           display: block;
-          font-size: 2.5rem;
+          font-size: 2.75rem;
           font-weight: 700;
           color: var(--primary);
+          font-family: var(--font-title);
         }
 
         .stat-label {
           color: var(--text-secondary);
           font-size: 0.9rem;
+          font-weight: 500;
+          text-transform: uppercase;
         }
 
         .text-link {
           display: inline-block;
-          margin-top: 1rem;
-          font-weight: 600;
+          margin-top: 1.5rem;
+          font-weight: 700;
+          color: var(--primary);
+          text-transform: uppercase;
+          font-size: 0.9rem;
+          letter-spacing: 1px;
         }
 
         /* Features */
@@ -199,7 +263,7 @@ export default function Home() {
 
         .section-header {
           text-align: center;
-          margin-bottom: 4rem;
+          margin-bottom: 4.5rem;
           max-width: 700px;
           margin-left: auto;
           margin-right: auto;
@@ -208,35 +272,47 @@ export default function Home() {
         .features__grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 2rem;
+          gap: 2.5rem;
         }
 
         .feature-card {
-          background: white;
-          padding: 2.5rem;
+          background: var(--surface);
+          padding: 3rem;
           border-radius: var(--radius-md);
           box-shadow: var(--shadow-sm);
-          transition: transform 0.2s;
+          transition: all 0.3s ease;
+          border: 1px solid var(--border);
         }
 
         .feature-card:hover {
-          transform: translateY(-5px);
-          box-shadow: var(--shadow-md);
+          transform: translateY(-8px);
+          box-shadow: var(--shadow-lg);
+          border-color: var(--primary);
         }
 
         .feature-icon {
-          color: var(--secondary);
-          margin-bottom: 1.5rem;
+          color: var(--primary);
+          margin-bottom: 1.75rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .about__grid { gap: 3rem; }
         }
 
         @media (max-width: 768px) {
           .hero__title {
-            font-size: 2.5rem;
+            font-size: 2.75rem;
           }
           
           .about__grid {
             grid-template-columns: 1fr;
           }
+
+          .hero { height: auto; padding: 100px 0; }
         }
       `}</style>
     </div>

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 import {
   QrCode,
   Truck,
@@ -11,11 +13,50 @@ import {
   Clock,
   MapPin,
   ChevronRight,
-  LogOut
+  LogOut,
+  Newspaper,
+  Bell
 } from 'lucide-react';
+
+interface News {
+  id: string;
+  title: string;
+  excerpt: string;
+  created_at: string;
+  category: string;
+}
 
 export default function PortalDashboard() {
   const { user, logout } = useAuth();
+  const [news, setNews] = useState<News[]>([]);
+  const [loadingNews, setLoadingNews] = useState(true);
+
+  useEffect(() => {
+    loadNews();
+  }, []);
+
+  const loadNews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('news')
+        .select('id, title, excerpt, created_at, category')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setNews(data || []);
+    } catch (error) {
+      console.error('Error loading news:', error);
+    } finally {
+      setLoadingNews(false);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+  };
 
   if (!user) return null;
 
@@ -35,6 +76,7 @@ export default function PortalDashboard() {
       </header>
 
       <main className="portal-main">
+        {/* Quick Actions */}
         <section className="quick-actions">
           <h2>Operaciones Rápidas</h2>
           <div className="action-grid">
@@ -58,37 +100,72 @@ export default function PortalDashboard() {
           </div>
         </section>
 
+        {/* Menu Links - Now all functional */}
         <section className="info-sections">
-          <div className="info-card">
+          <Link href="/portal/fichar" className="info-card">
             <Clock size={20} />
             <span>Ver mi historial de asistencia</span>
             <ChevronRight size={18} />
-          </div>
-          <div className="info-card">
+          </Link>
+          <Link href="/portal/solicitudes" className="info-card">
             <Calendar size={20} />
             <span>Solicitar vacaciones o permisos</span>
             <ChevronRight size={18} />
-          </div>
-          <div className="info-card">
+          </Link>
+          <Link href="/portal/recibos" className="info-card">
             <FileText size={20} />
             <span>Mis recibos de sueldo</span>
             <ChevronRight size={18} />
-          </div>
-          <div className="info-card">
+          </Link>
+          <Link href="/portal/perfil" className="info-card">
             <User size={20} />
             <span>Mi legajo digital</span>
             <ChevronRight size={18} />
-          </div>
+          </Link>
         </section>
 
+        {/* News/Novedades Section */}
+        <section className="news-section">
+          <div className="section-header">
+            <div className="section-title">
+              <Bell size={20} />
+              <h2>Novedades</h2>
+            </div>
+            <span className="badge">{news.length} nuevas</span>
+          </div>
+
+          {loadingNews ? (
+            <div className="loading-news">Cargando novedades...</div>
+          ) : news.length === 0 ? (
+            <div className="empty-news">
+              <Newspaper size={32} />
+              <p>No hay novedades por el momento</p>
+            </div>
+          ) : (
+            <div className="news-list">
+              {news.map((item) => (
+                <div key={item.id} className="news-item">
+                  <div className="news-date">{formatDate(item.created_at)}</div>
+                  <div className="news-content">
+                    <span className="news-category">{item.category || 'General'}</span>
+                    <h4>{item.title}</h4>
+                    <p>{item.excerpt || 'Sin descripción'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Current Location */}
         <section className="current-status">
           <div className="status-header">
             <MapPin size={18} />
             <h3>Sede Actual</h3>
           </div>
           <div className="status-body">
-            <strong>Estadio de Racing</strong>
-            <p>Av. Mitre 934, Avellaneda</p>
+            <strong>{user.assigned_stadium || 'Sin sede asignada'}</strong>
+            <p>Ubicación de trabajo actual</p>
           </div>
         </section>
       </main>
@@ -98,12 +175,12 @@ export default function PortalDashboard() {
           max-width: 600px;
           margin: 0 auto;
           min-height: 100vh;
-          background: #f8fafc;
+          background: var(--background);
           padding-bottom: 2rem;
         }
 
         .portal-header {
-          background: var(--primary);
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 100%);
           color: white;
           padding: 2.5rem 1.5rem;
           display: flex;
@@ -137,6 +214,7 @@ export default function PortalDashboard() {
           font-size: 1.5rem;
           margin: 0;
           font-weight: 700;
+          color: white !important;
         }
 
         .role-chip {
@@ -153,7 +231,7 @@ export default function PortalDashboard() {
         .logout-btn {
           background: rgba(255,255,255,0.1);
           border: none;
-          color: white;
+          color: white !important;
           padding: 0.5rem;
           border-radius: 10px;
           cursor: pointer;
@@ -166,7 +244,7 @@ export default function PortalDashboard() {
 
         .quick-actions h2 {
           font-size: 1.1rem;
-          color: #334155;
+          color: var(--text-secondary);
           margin-bottom: 1rem;
           font-weight: 600;
         }
@@ -179,7 +257,7 @@ export default function PortalDashboard() {
         }
 
         .action-card {
-          background: white;
+          background: var(--surface);
           padding: 1.25rem;
           border-radius: 16px;
           display: flex;
@@ -188,6 +266,7 @@ export default function PortalDashboard() {
           text-decoration: none;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
           transition: transform 0.2s, box-shadow 0.2s;
+          border: 1px solid var(--border);
         }
 
         .action-card:hover {
@@ -207,63 +286,160 @@ export default function PortalDashboard() {
         .primary .card-icon { background: #e0f2fe; color: #0369a1; }
         .secondary .card-icon { background: #fef3c7; color: #b45309; }
 
-        .card-text {
-          flex: 1;
-        }
+        .card-text { flex: 1; }
+        .card-text h3 { font-size: 1rem; color: var(--text-main); margin-bottom: 0.2rem; }
+        .card-text p { font-size: 0.85rem; color: var(--text-secondary); }
 
-        .card-text h3 {
-          font-size: 1rem;
-          color: #1e293b;
-          margin-bottom: 0.2rem;
-        }
-
-        .card-text p {
-          font-size: 0.85rem;
-          color: #64748b;
-        }
-
-        .arrow {
-          color: #cbd5e1;
-        }
+        .arrow { color: #cbd5e1; }
 
         .info-sections {
-          background: white;
+          background: var(--surface);
           border-radius: 16px;
           overflow: hidden;
           margin-bottom: 2rem;
           box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          border: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
         }
 
-        .info-card {
+        .info-sections :global(.info-card) {
           padding: 1.25rem;
-          display: flex;
+          display: flex !important;
           align-items: center;
           gap: 1rem;
-          border-bottom: 1px solid #f1f5f9;
-          color: #475569;
+          border-bottom: 1px solid var(--border);
+          color: var(--text-secondary) !important;
           font-size: 0.95rem;
           cursor: pointer;
+          text-decoration: none !important;
+          transition: background 0.2s;
         }
 
-        .info-card:last-child {
+        .info-sections :global(.info-card:hover) {
+          background: var(--background);
+        }
+
+        .info-sections :global(.info-card:last-child) { border-bottom: none; }
+        .info-sections :global(.info-card span) { flex: 1; }
+
+        /* News Section */
+        .news-section {
+          background: var(--surface);
+          border-radius: 16px;
+          padding: 1.25rem;
+          margin-bottom: 2rem;
+          border: 1px solid var(--border);
+        }
+
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .section-title {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: var(--primary);
+        }
+
+        .section-title h2 {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .badge {
+          background: var(--accent);
+          color: var(--primary);
+          padding: 0.25rem 0.75rem;
+          border-radius: 100px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .loading-news, .empty-news {
+          text-align: center;
+          padding: 2rem 1rem;
+          color: var(--text-secondary);
+        }
+
+        .empty-news svg {
+          opacity: 0.4;
+          margin-bottom: 0.5rem;
+        }
+
+        .news-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .news-item {
+          display: flex;
+          gap: 1rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .news-item:last-child {
           border-bottom: none;
+          padding-bottom: 0;
         }
 
-        .info-card span {
+        .news-date {
+          min-width: 50px;
+          text-align: center;
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+          font-weight: 600;
+        }
+
+        .news-content {
           flex: 1;
         }
 
+        .news-category {
+          display: inline-block;
+          background: #e0f2fe;
+          color: #0369a1;
+          padding: 0.15rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.7rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          margin-bottom: 0.25rem;
+        }
+
+        .news-content h4 {
+          font-size: 0.95rem;
+          color: var(--text-main);
+          margin: 0.25rem 0;
+        }
+
+        .news-content p {
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        /* Current Status */
         .current-status {
-          background: #e2e8f0;
+          background: var(--surface);
           padding: 1.5rem;
           border-radius: 16px;
+          border: 1px solid var(--border);
         }
 
         .status-header {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          color: #475569;
+          color: var(--text-secondary);
           margin-bottom: 0.75rem;
         }
 
@@ -276,13 +452,13 @@ export default function PortalDashboard() {
 
         .status-body strong {
           display: block;
-          color: #1e293b;
+          color: var(--text-main);
           font-size: 1.1rem;
           margin-bottom: 0.2rem;
         }
 
         .status-body p {
-          color: #64748b;
+          color: var(--text-secondary);
           font-size: 0.9rem;
         }
       `}</style>

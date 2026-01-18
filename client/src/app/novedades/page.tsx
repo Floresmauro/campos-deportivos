@@ -4,73 +4,73 @@ import Link from 'next/link';
 import { Calendar, ArrowRight } from 'lucide-react';
 
 export default function NovedadesPage() {
-    // Mock data - would come from API
-    const noticias = [
-        {
-            id: 1,
-            slug: 'renovacion-racing',
-            title: 'Renovación del estadio de Racing completada',
-            excerpt: 'Terminamos exitosamente la renovación completa del césped del Cilindro de Avellaneda, implementando las últimas tecnologías en mantenimiento de superficies deportivas.',
-            image: '/images/stadiums/racing.jpg',
-            date: '12 Enero 2026'
-        },
-        {
-            id: 2,
-            slug: 'nueva-maquinaria',
-            title: 'Nueva maquinaria incorporada a la flota',
-            excerpt: 'Adquirimos 3 nuevos tractores John Deere de última generación para mejorar nuestros servicios de corte y mantenimiento.',
-            image: '/images/services/tractor.jpg',
-            date: '05 Enero 2026'
-        },
-        {
-            id: 3,
-            slug: 'capacitacion-cesped-hibrido',
-            title: 'Próxima capacitación: Manejo de césped híbrido',
-            excerpt: 'Inscripciones abiertas para el curso de febrero 2026. Aprenda las mejores técnicas para el cuidado de superficies híbridas.',
-            image: '/images/services/training.jpg',
-            date: '20 Diciembre 2025'
-        },
-    ];
+  // Mock data - would come from API
+  const noticias = [
+    {
+      id: 1,
+      slug: 'renovacion-racing',
+      title: 'Renovación del estadio de Racing completada',
+      excerpt: 'Terminamos exitosamente la renovación completa del césped del Cilindro de Avellaneda, implementando las últimas tecnologías en mantenimiento de superficies deportivas.',
+      image: '/images/stadiums/racing.jpg',
+      date: '12 Enero 2026'
+    },
+    {
+      id: 2,
+      slug: 'nueva-maquinaria',
+      title: 'Nueva maquinaria incorporada a la flota',
+      excerpt: 'Adquirimos 3 nuevos tractores John Deere de última generación para mejorar nuestros servicios de corte y mantenimiento.',
+      image: '/images/services/tractor.jpg',
+      date: '05 Enero 2026'
+    },
+    {
+      id: 3,
+      slug: 'capacitacion-cesped-hibrido',
+      title: 'Próxima capacitación: Manejo de césped híbrido',
+      excerpt: 'Inscripciones abiertas para el curso de febrero 2026. Aprenda las mejores técnicas para el cuidado de superficies híbridas.',
+      image: '/images/services/training.jpg',
+      date: '20 Diciembre 2025'
+    },
+  ];
 
-    return (
-        <div className="novedades-page">
-            <header className="page-header">
-                <div className="container">
-                    <h1 className="page-title">Novedades</h1>
-                    <p className="page-subtitle">Últimas noticias y actualizaciones de Campos Deportivos.</p>
+  return (
+    <div className="novedades-page">
+      <header className="page-header">
+        <div className="container">
+          <h1 className="page-title">Novedades</h1>
+          <p className="page-subtitle">Últimas noticias y actualizaciones de Campos Deportivos.</p>
+        </div>
+      </header>
+
+      <section className="section">
+        <div className="container">
+          <div className="noticias-grid">
+            {noticias.map((noticia) => (
+              <article key={noticia.id} className="noticia-card">
+                <div className="noticia-image">
+                  <div className="image-placeholder">
+                    <span>Imagen: {noticia.image}</span>
+                  </div>
                 </div>
-            </header>
-
-            <section className="section">
-                <div className="container">
-                    <div className="noticias-grid">
-                        {noticias.map((noticia) => (
-                            <article key={noticia.id} className="noticia-card">
-                                <div className="noticia-image">
-                                    <div className="image-placeholder">
-                                        <span>Imagen: {noticia.image}</span>
-                                    </div>
-                                </div>
-                                <div className="noticia-content">
-                                    <div className="noticia-date">
-                                        <Calendar size={14} />
-                                        {noticia.date}
-                                    </div>
-                                    <h2>{noticia.title}</h2>
-                                    <p>{noticia.excerpt}</p>
-                                    <Link href={`/novedades/${noticia.slug}`} className="read-more">
-                                        Leer más <ArrowRight size={16} />
-                                    </Link>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                <div className="noticia-content">
+                  <div className="noticia-date">
+                    <Calendar size={14} />
+                    {noticia.date}
+                  </div>
+                  <h2>{noticia.title}</h2>
+                  <p>{noticia.excerpt}</p>
+                  <Link href={`/novedades/${noticia.slug}`} className="read-more">
+                    Leer más <ArrowRight size={16} />
+                  </Link>
                 </div>
-            </section>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <style jsx>{`
+      <style jsx>{`
         .page-header {
-          background-color: var(--primary);
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 50%, #1a3d1a 100%);
           color: white;
           padding: 4rem 0;
           text-align: center;
@@ -78,13 +78,14 @@ export default function NovedadesPage() {
 
         .page-title {
           font-size: 3rem;
-          color: white;
+          color: white !important;
           margin-bottom: 1rem;
         }
 
         .page-subtitle {
           font-size: 1.2rem;
           opacity: 0.9;
+          color: white;
         }
 
         .section {
@@ -98,11 +99,12 @@ export default function NovedadesPage() {
         }
 
         .noticia-card {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           overflow: hidden;
           box-shadow: var(--shadow-sm);
           transition: transform 0.2s, box-shadow 0.2s;
+          border: 1px solid var(--border);
         }
 
         .noticia-card:hover {
@@ -119,11 +121,11 @@ export default function NovedadesPage() {
         .image-placeholder {
           width: 100%;
           height: 100%;
-          background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+          background: var(--background);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #888;
+          color: var(--text-secondary);
           font-size: 0.85rem;
         }
 
@@ -173,6 +175,6 @@ export default function NovedadesPage() {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

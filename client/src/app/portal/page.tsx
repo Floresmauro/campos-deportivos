@@ -102,15 +102,16 @@ export default function PortalLoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, var(--primary) 0%, #001a33 100%);
+          background: linear-gradient(135deg, var(--primary) 0%, #121512 100%);
           padding: 2rem;
         }
 
         .login-container {
-          background: white;
+          background: var(--surface);
           padding: 3rem;
-          border-radius: var(--radius-lg);
+          border-radius: var(--radius-md);
           box-shadow: var(--shadow-lg);
+          border: 1px solid var(--border);
           width: 100%;
           max-width: 420px;
         }
@@ -133,14 +134,17 @@ export default function PortalLoginPage() {
         }
 
         .login-header h1 {
+          font-family: var(--font-title);
           font-size: 1.75rem;
           color: var(--primary);
           margin-bottom: 0.5rem;
+          text-transform: uppercase;
         }
 
         .login-header p {
           color: var(--text-secondary);
           font-size: 0.95rem;
+          font-weight: 500;
         }
 
         .error-message {
@@ -169,7 +173,9 @@ export default function PortalLoginPage() {
           width: 100%;
           padding: 1rem 1rem 1rem 3rem;
           border: 1px solid var(--border);
-          border-radius: var(--radius-sm);
+          background: var(--background);
+          color: var(--text-main);
+          border-radius: var(--radius-md);
           font-size: 1rem;
           transition: border-color 0.2s;
         }

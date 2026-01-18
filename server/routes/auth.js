@@ -1,18 +1,38 @@
 const express = require('express');
 const router = express.Router();
 const { createClient } = require('@supabase/supabase-js');
+const { body, validationResult } = require('express-validator');
 require('dotenv').config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
+// Validation middleware
+const validate = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+};
+
+const registerValidation = [
+    body('email').isEmail().withMessage('Email inválido'),
+    body('password').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+    body('full_name').notEmpty().withMessage('El nombre completo es requerido'),
+    body('role').isIn(['admin', 'manager', 'employee']).withMessage('Rol inválido'),
+    validate
+];
+
+const loginValidation = [
+    body('email').isEmail().withMessage('Email inválido'),
+    body('password').notEmpty().withMessage('La contraseña es requerida'),
+    validate
+];
+
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', loginValidation, async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
-        }
 
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -39,23 +59,9 @@ router.post('/login', async (req, res) => {
 });
 
 // Register (Admin only - requires valid admin token)
-router.post('/register', async (req, res) => {
+router.post('/register', registerValidation, async (req, res) => {
     try {
         const { email, password, full_name, role, phone, assigned_stadium_id } = req.body;
-
-        if (!email || !password || !full_name || !role) {
-            return res.status(400).json({
-                error: 'Email, password, full_name, and role are required'
-            });
-        }
-
-        // Validate role
-        const validRoles = ['admin', 'manager', 'employee'];
-        if (!validRoles.includes(role)) {
-            return res.status(400).json({
-                error: 'Invalid role. Must be admin, manager, or employee'
-            });
-        }
 
         // Create auth user
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({

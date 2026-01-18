@@ -3,72 +3,72 @@
 import { Building2, Users, Wrench, AlertTriangle, MapPin } from 'lucide-react';
 
 export default function AdminDashboard() {
-    // Mock data
-    const stats = [
-        { label: 'Estadios Activos', value: 12, icon: <Building2 size={24} />, color: '#003366' },
-        { label: 'Empleados', value: 87, icon: <Users size={24} />, color: '#2E8B57' },
-        { label: 'Maquinarias', value: 34, icon: <Wrench size={24} />, color: '#6B7280' },
-        { label: 'Alertas', value: 3, icon: <AlertTriangle size={24} />, color: '#DC2626' },
-    ];
+  // Mock data
+  const stats = [
+    { label: 'Estadios Activos', value: 12, icon: <Building2 size={24} />, color: '#003366' },
+    { label: 'Empleados', value: 87, icon: <Users size={24} />, color: '#2E8B57' },
+    { label: 'Maquinarias', value: 34, icon: <Wrench size={24} />, color: '#6B7280' },
+    { label: 'Alertas', value: 3, icon: <AlertTriangle size={24} />, color: '#DC2626' },
+  ];
 
-    return (
-        <div className="admin-dashboard">
-            <div className="dashboard-header">
-                <h1>Panel de Administración</h1>
-                <p>Resumen ejecutivo y control operativo.</p>
+  return (
+    <div className="admin-dashboard">
+      <div className="dashboard-header">
+        <h1>Panel de Administración</h1>
+        <p>Resumen ejecutivo y control operativo.</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        {stats.map((stat, i) => (
+          <div key={i} className="stat-card" style={{ '--stat-color': stat.color } as React.CSSProperties}>
+            <div className="stat-icon">{stat.icon}</div>
+            <div>
+              <span className="stat-value">{stat.value}</span>
+              <span className="stat-label">{stat.label}</span>
             </div>
+          </div>
+        ))}
+      </div>
 
-            {/* Stats Grid */}
-            <div className="stats-grid">
-                {stats.map((stat, i) => (
-                    <div key={i} className="stat-card" style={{ '--stat-color': stat.color } as React.CSSProperties}>
-                        <div className="stat-icon">{stat.icon}</div>
-                        <div>
-                            <span className="stat-value">{stat.value}</span>
-                            <span className="stat-label">{stat.label}</span>
-                        </div>
-                    </div>
-                ))}
+      {/* Map Section */}
+      <section className="map-section">
+        <h2><MapPin size={20} /> Mapa en Tiempo Real</h2>
+        <div className="map-placeholder">
+          <p>Integrar mapa de Google Maps o Leaflet aquí.</p>
+          <p>Mostrar ubicación de maquinaria en movimiento.</p>
+        </div>
+      </section>
+
+      {/* Recent Activity */}
+      <section className="activity-section">
+        <h2>Actividad Reciente</h2>
+        <div className="activity-list">
+          <div className="activity-item">
+            <span className="activity-dot" style={{ background: '#2E8B57' }}></span>
+            <div className="activity-content">
+              <p><strong>Juan Pérez</strong> fichó entrada en Racing Club.</p>
+              <span>Hace 5 minutos</span>
             </div>
+          </div>
+          <div className="activity-item">
+            <span className="activity-dot" style={{ background: '#003366' }}></span>
+            <div className="activity-content">
+              <p><strong>Tractor 03</strong> fue trasladado a Banfield.</p>
+              <span>Hace 30 minutos</span>
+            </div>
+          </div>
+          <div className="activity-item">
+            <span className="activity-dot" style={{ background: '#DC2626' }}></span>
+            <div className="activity-content">
+              <p><strong>Alerta:</strong> Cortadora 07 requiere mantenimiento.</p>
+              <span>Hace 1 hora</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Map Section */}
-            <section className="map-section">
-                <h2><MapPin size={20} /> Mapa en Tiempo Real</h2>
-                <div className="map-placeholder">
-                    <p>Integrar mapa de Google Maps o Leaflet aquí.</p>
-                    <p>Mostrar ubicación de maquinaria en movimiento.</p>
-                </div>
-            </section>
-
-            {/* Recent Activity */}
-            <section className="activity-section">
-                <h2>Actividad Reciente</h2>
-                <div className="activity-list">
-                    <div className="activity-item">
-                        <span className="activity-dot" style={{ background: '#2E8B57' }}></span>
-                        <div className="activity-content">
-                            <p><strong>Juan Pérez</strong> fichó entrada en Racing Club.</p>
-                            <span>Hace 5 minutos</span>
-                        </div>
-                    </div>
-                    <div className="activity-item">
-                        <span className="activity-dot" style={{ background: '#003366' }}></span>
-                        <div className="activity-content">
-                            <p><strong>Tractor 03</strong> fue trasladado a Banfield.</p>
-                            <span>Hace 30 minutos</span>
-                        </div>
-                    </div>
-                    <div className="activity-item">
-                        <span className="activity-dot" style={{ background: '#DC2626' }}></span>
-                        <div className="activity-content">
-                            <p><strong>Alerta:</strong> Cortadora 07 requiere mantenimiento.</p>
-                            <span>Hace 1 hora</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <style jsx>{`
+      <style jsx>{`
         .admin-dashboard {
           max-width: 1200px;
         }
@@ -93,10 +93,11 @@ export default function AdminDashboard() {
         }
 
         .stat-card {
-          background: white;
+          background: var(--surface);
           padding: 1.5rem;
           border-radius: var(--radius-md);
           box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
           display: flex;
           align-items: center;
           gap: 1rem;
@@ -120,10 +121,11 @@ export default function AdminDashboard() {
         }
 
         .map-section, .activity-section {
-          background: white;
+          background: var(--surface);
           padding: 1.5rem;
           border-radius: var(--radius-md);
           box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
           margin-bottom: 2rem;
         }
 
@@ -185,6 +187,6 @@ export default function AdminDashboard() {
           color: var(--text-secondary);
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

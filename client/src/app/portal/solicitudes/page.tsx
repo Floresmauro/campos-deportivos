@@ -4,105 +4,105 @@ import { useState } from 'react';
 import { Calendar, Plus, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 export default function SolicitudesPage() {
-    const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
-    // Mock data
-    const requests = [
-        { id: 1, type: 'vacation', dates: '15/02/2026 - 28/02/2026', status: 'pending', createdAt: '10/01/2026' },
-        { id: 2, type: 'permit', dates: '05/01/2026', status: 'approved', createdAt: '03/01/2026' },
-        { id: 3, type: 'vacation', dates: '20/12/2025 - 25/12/2025', status: 'approved', createdAt: '01/12/2025' },
-    ];
+  // Mock data
+  const requests = [
+    { id: 1, type: 'vacation', dates: '15/02/2026 - 28/02/2026', status: 'pending', createdAt: '10/01/2026' },
+    { id: 2, type: 'permit', dates: '05/01/2026', status: 'approved', createdAt: '03/01/2026' },
+    { id: 3, type: 'vacation', dates: '20/12/2025 - 25/12/2025', status: 'approved', createdAt: '01/12/2025' },
+  ];
 
-    const statusConfig: { [key: string]: { label: string, icon: React.ReactNode, class: string } } = {
-        pending: { label: 'Pendiente', icon: <Clock size={16} />, class: 'pending' },
-        approved: { label: 'Aprobado', icon: <CheckCircle size={16} />, class: 'approved' },
-        rejected: { label: 'Rechazado', icon: <XCircle size={16} />, class: 'rejected' }
-    };
+  const statusConfig: { [key: string]: { label: string, icon: React.ReactNode, class: string } } = {
+    pending: { label: 'Pendiente', icon: <Clock size={16} />, class: 'pending' },
+    approved: { label: 'Aprobado', icon: <CheckCircle size={16} />, class: 'approved' },
+    rejected: { label: 'Rechazado', icon: <XCircle size={16} />, class: 'rejected' }
+  };
 
-    const typeLabels: { [key: string]: string } = {
-        vacation: 'Vacaciones',
-        permit: 'Permiso'
-    };
+  const typeLabels: { [key: string]: string } = {
+    vacation: 'Vacaciones',
+    permit: 'Permiso'
+  };
 
-    return (
-        <div className="solicitudes-page">
-            <header className="page-header">
-                <div className="header-content">
-                    <h1>Mis Solicitudes</h1>
-                    <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-                        <Plus size={18} /> Nueva
-                    </button>
+  return (
+    <div className="solicitudes-page">
+      <header className="page-header">
+        <div className="header-content">
+          <h1>Mis Solicitudes</h1>
+          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+            <Plus size={18} /> Nueva
+          </button>
+        </div>
+      </header>
+
+      <main className="page-main">
+        {/* Request Form Modal */}
+        {showForm && (
+          <div className="modal-overlay" onClick={() => setShowForm(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h2>Nueva Solicitud</h2>
+              <form className="request-form">
+                <div className="form-group">
+                  <label>Tipo de Solicitud</label>
+                  <select>
+                    <option value="vacation">Vacaciones</option>
+                    <option value="permit">Permiso</option>
+                  </select>
                 </div>
-            </header>
-
-            <main className="page-main">
-                {/* Request Form Modal */}
-                {showForm && (
-                    <div className="modal-overlay" onClick={() => setShowForm(false)}>
-                        <div className="modal" onClick={(e) => e.stopPropagation()}>
-                            <h2>Nueva Solicitud</h2>
-                            <form className="request-form">
-                                <div className="form-group">
-                                    <label>Tipo de Solicitud</label>
-                                    <select>
-                                        <option value="vacation">Vacaciones</option>
-                                        <option value="permit">Permiso</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Fecha de Inicio</label>
-                                    <input type="date" />
-                                </div>
-                                <div className="form-group">
-                                    <label>Fecha de Fin</label>
-                                    <input type="date" />
-                                </div>
-                                <div className="form-group">
-                                    <label>Motivo (opcional)</label>
-                                    <textarea rows={3} placeholder="Describa el motivo..."></textarea>
-                                </div>
-                                <div className="form-actions">
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>
-                                        Cancelar
-                                    </button>
-                                    <button type="submit" className="btn btn-primary">
-                                        Enviar Solicitud
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Requests List */}
-                <div className="requests-list">
-                    {requests.map((req) => (
-                        <div key={req.id} className="request-card">
-                            <div className="request-icon">
-                                <Calendar size={24} />
-                            </div>
-                            <div className="request-info">
-                                <h3>{typeLabels[req.type]}</h3>
-                                <p className="dates">{req.dates}</p>
-                                <p className="created">Solicitado: {req.createdAt}</p>
-                            </div>
-                            <div className={`status-badge ${statusConfig[req.status].class}`}>
-                                {statusConfig[req.status].icon}
-                                {statusConfig[req.status].label}
-                            </div>
-                        </div>
-                    ))}
+                <div className="form-group">
+                  <label>Fecha de Inicio</label>
+                  <input type="date" />
                 </div>
-            </main>
+                <div className="form-group">
+                  <label>Fecha de Fin</label>
+                  <input type="date" />
+                </div>
+                <div className="form-group">
+                  <label>Motivo (opcional)</label>
+                  <textarea rows={3} placeholder="Describa el motivo..."></textarea>
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    Enviar Solicitud
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
-            <style jsx>{`
+        {/* Requests List */}
+        <div className="requests-list">
+          {requests.map((req) => (
+            <div key={req.id} className="request-card">
+              <div className="request-icon">
+                <Calendar size={24} />
+              </div>
+              <div className="request-info">
+                <h3>{typeLabels[req.type]}</h3>
+                <p className="dates">{req.dates}</p>
+                <p className="created">Solicitado: {req.createdAt}</p>
+              </div>
+              <div className={`status-badge ${statusConfig[req.status].class}`}>
+                {statusConfig[req.status].icon}
+                {statusConfig[req.status].label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      <style jsx>{`
         .solicitudes-page {
           min-height: 100vh;
           background: var(--background);
         }
 
         .page-header {
-          background: var(--primary);
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 100%);
           color: white;
           padding: 1.5rem;
         }
@@ -116,7 +116,7 @@ export default function SolicitudesPage() {
         }
 
         .header-content h1 {
-          color: white;
+          color: white !important;
           font-size: 1.5rem;
           margin: 0;
         }
@@ -140,13 +140,14 @@ export default function SolicitudesPage() {
         }
 
         .request-card {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           padding: 1.25rem;
           display: flex;
           align-items: flex-start;
           gap: 1rem;
           box-shadow: var(--shadow-sm);
+          border: 1px solid var(--border);
         }
 
         .request-icon {
@@ -221,7 +222,7 @@ export default function SolicitudesPage() {
         }
 
         .modal {
-          background: white;
+          background: var(--surface);
           border-radius: var(--radius-md);
           padding: 2rem;
           width: 100%;
@@ -230,6 +231,7 @@ export default function SolicitudesPage() {
 
         .modal h2 {
           margin-bottom: 1.5rem;
+          color: var(--text-main);
         }
 
         .form-group {
@@ -251,6 +253,8 @@ export default function SolicitudesPage() {
           border-radius: var(--radius-sm);
           font-family: inherit;
           font-size: 1rem;
+          background: var(--background);
+          color: var(--text-main);
         }
 
         .form-actions {
@@ -263,6 +267,6 @@ export default function SolicitudesPage() {
           flex: 1;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
