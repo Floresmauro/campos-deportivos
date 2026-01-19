@@ -73,7 +73,7 @@ export default function AdminLayout({
         <button className="menu-btn" onClick={() => setSidebarOpen(true)}>
           <Menu size={24} />
         </button>
-        <span className="brand">Admin Panel</span>
+        <Link href="/" className="brand">Admin Panel</Link>
         <button className="theme-toggle" onClick={toggleDarkMode}>
           {settings.darkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
@@ -87,7 +87,9 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <img src="/logo.jpg" alt="Campos Deportivos" className="sidebar-logo" />
+          <Link href="/">
+            <img src="/logo.jpg" alt="Campos Deportivos" className="sidebar-logo" />
+          </Link>
           <button className="close-btn" onClick={() => setSidebarOpen(false)}>
             <X size={24} />
           </button>
@@ -168,6 +170,7 @@ export default function AdminLayout({
           font-size: 1.1rem;
           color: var(--primary);
           text-transform: uppercase;
+          text-decoration: none !important;
         }
 
         .menu-btn, .theme-toggle {

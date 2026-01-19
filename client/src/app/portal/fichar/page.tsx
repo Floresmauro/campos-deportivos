@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Camera, CheckCircle, XCircle, MapPin, Clock, ArrowUpCircle, ArrowDownCircle, ArrowLeft } from 'lucide-react';
+import { Camera, CheckCircle, XCircle, MapPin, Clock, ArrowUpCircle, ArrowDownCircle, ArrowLeft, Home } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -107,9 +107,14 @@ export default function FicharPage() {
   return (
     <div className="fichar-page">
       <header className="page-header">
-        <Link href="/portal/dashboard" className="back-btn">
-          <ArrowLeft size={20} />
-        </Link>
+        <div className="header-nav">
+          <Link href="/portal/dashboard" className="back-btn" title="Volver al portal">
+            <ArrowLeft size={20} />
+          </Link>
+          <Link href="/" className="home-btn" title="Ir al inicio">
+            <Home size={20} />
+          </Link>
+        </div>
         <div>
           <h1>Mi Asistencia</h1>
           <p>Historial y fichaje QR</p>
@@ -233,12 +238,16 @@ export default function FicharPage() {
                     background: linear-gradient(135deg, #1a472a 0%, #2d5a27 100%);
                     color: white;
                     padding: 1.5rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
                 }
 
-                .back-btn {
+                .header-nav {
+                  display: flex;
+                  gap: 0.5rem;
+                  margin-bottom: 1rem;
+                }
+
+                .back-btn,
+                .home-btn {
                     background: rgba(255,255,255,0.1);
                     border: none;
                     color: white !important;
@@ -248,6 +257,13 @@ export default function FicharPage() {
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    text-decoration: none;
+                    transition: background 0.2s;
+                }
+
+                .back-btn:hover,
+                .home-btn:hover {
+                    background: rgba(255,255,255,0.25);
                 }
 
                 .page-header h1 {

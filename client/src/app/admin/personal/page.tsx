@@ -13,6 +13,13 @@ interface Profile {
     assigned_stadium_id: string | null;
     phone: string | null;
     stadiums?: { name: string } | null;
+    dni?: string | null;
+    obra_social?: string | null;
+    birth_date?: string | null;
+    start_date?: string | null;
+    emergency_contact_name?: string | null;
+    emergency_contact_phone?: string | null;
+    avatar_url?: string | null;
 }
 
 interface AttendanceRecord {
@@ -61,7 +68,14 @@ export default function PersonnelPage() {
         email: '',
         role: 'employee',
         assigned_stadium_id: '',
-        phone: ''
+        phone: '',
+        dni: '',
+        obra_social: '',
+        birth_date: '',
+        start_date: '',
+        emergency_contact_name: '',
+        emergency_contact_phone: '',
+        avatar_url: ''
     });
 
     useEffect(() => {
@@ -108,23 +122,23 @@ export default function PersonnelPage() {
     const handleCreateEmployee = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Note: In a real system, we'd use a cloud function to create the auth user
-            // For now, we assume the admin creates the profile and the user signs up later
-            // (or we use the 'admin create user' endpoint if using service key on backend)
-            // Here we just insert into profiles (assuming user exists or will exist)
-            // BUT wait, profiles table references auth.users. 
-            // Better to show a message or call our backend API if available.
-
-            // To be realistic with Supabase, we should call the backend /api/auth/register
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: formData.email,
-                    password: 'password123', // temporary
+                    password: 'password123',
                     full_name: formData.full_name,
                     role: formData.role,
-                    assigned_stadium_id: formData.assigned_stadium_id || null
+                    assigned_stadium_id: formData.assigned_stadium_id || null,
+                    phone: formData.phone,
+                    dni: formData.dni,
+                    obra_social: formData.obra_social,
+                    birth_date: formData.birth_date || null,
+                    start_date: formData.start_date || null,
+                    emergency_contact_name: formData.emergency_contact_name,
+                    emergency_contact_phone: formData.emergency_contact_phone,
+                    avatar_url: formData.avatar_url
                 })
             });
 
@@ -153,7 +167,14 @@ export default function PersonnelPage() {
                     full_name: formData.full_name,
                     role: formData.role,
                     assigned_stadium_id: formData.assigned_stadium_id || null,
-                    phone: formData.phone
+                    phone: formData.phone,
+                    dni: formData.dni,
+                    obra_social: formData.obra_social,
+                    birth_date: formData.birth_date || null,
+                    start_date: formData.start_date || null,
+                    emergency_contact_name: formData.emergency_contact_name,
+                    emergency_contact_phone: formData.emergency_contact_phone,
+                    avatar_url: formData.avatar_url
                 })
                 .eq('id', selectedEmployee.id);
 
@@ -171,7 +192,6 @@ export default function PersonnelPage() {
     const handleDeleteEmployee = async (id: string) => {
         if (!confirm('¿Estás seguro de eliminar este empleado?')) return;
         try {
-            // Only admins can delete profiles through the API or Trigger
             const { error } = await supabase.from('profiles').delete().eq('id', id);
             if (error) throw error;
             loadData();
@@ -195,25 +215,67 @@ export default function PersonnelPage() {
         }
     };
 
+    const [uploading, setUploading] = useState(false);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const fData = new FormData();
+            fData.append('file', file);
+            fData.append('bucket', 'avatars');
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: fData
+            });
+
+            if (!response.ok) throw new Error('Error al subir imagen');
+            const data = await response.json();
+            setFormData(prev => ({ ...prev, avatar_url: data.url }));
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Error al subir la imagen');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             full_name: '',
             email: '',
             role: 'employee',
             assigned_stadium_id: '',
-            phone: ''
+            phone: '',
+            dni: '',
+            obra_social: '',
+            birth_date: '',
+            start_date: '',
+            emergency_contact_name: '',
+            emergency_contact_phone: '',
+            avatar_url: ''
         });
         setSelectedEmployee(null);
     };
 
-    const openEditModal = (emp: Profile) => {
+    const openEditModal = (emp: any) => {
         setSelectedEmployee(emp);
         setFormData({
             full_name: emp.full_name,
             email: emp.email,
             role: emp.role,
             assigned_stadium_id: emp.assigned_stadium_id || '',
-            phone: emp.phone || ''
+            phone: emp.phone || '',
+            dni: emp.dni || '',
+            obra_social: emp.obra_social || '',
+            birth_date: emp.birth_date || '',
+            start_date: emp.start_date || '',
+            emergency_contact_name: emp.emergency_contact_name || '',
+            emergency_contact_phone: emp.emergency_contact_phone || '',
+            avatar_url: emp.avatar_url || ''
         });
         setIsEditModalOpen(true);
     };
@@ -226,15 +288,45 @@ export default function PersonnelPage() {
 
     const EmployeeForm = ({ onSubmit, submitLabel, isEdit = false }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string, isEdit?: boolean }) => (
         <form onSubmit={onSubmit} className="employee-form">
-            <div className="form-group">
-                <label>Nombre Completo *</label>
-                <input
-                    type="text"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    required
-                />
+            <div className="form-photo-section">
+                <div className="photo-preview">
+                    {formData.avatar_url ? (
+                        <img src={formData.avatar_url} alt="Avatar" />
+                    ) : (
+                        <User size={40} />
+                    )}
+                </div>
+                <div className="photo-actions">
+                    <label className="btn-upload">
+                        {uploading ? 'Subiendo...' : 'Subir Foto'}
+                        <input type="file" accept="image/*" onChange={handleFileUpload} hidden />
+                    </label>
+                    {formData.avatar_url && (
+                        <button type="button" className="btn-remove" onClick={() => setFormData({ ...formData, avatar_url: '' })}>Eliminar</button>
+                    )}
+                </div>
             </div>
+
+            <div className="form-row">
+                <div className="form-group">
+                    <label>Nombre Completo *</label>
+                    <input
+                        type="text"
+                        value={formData.full_name}
+                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>DNI</label>
+                    <input
+                        type="text"
+                        value={formData.dni}
+                        onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                    />
+                </div>
+            </div>
+
             <div className="form-group">
                 <label>Email *</label>
                 <input
@@ -246,6 +338,7 @@ export default function PersonnelPage() {
                 />
                 {!isEdit && <small>Contraseña por defecto: password123</small>}
             </div>
+
             <div className="form-row">
                 <div className="form-group">
                     <label>Rol *</label>
@@ -272,23 +365,81 @@ export default function PersonnelPage() {
                     </select>
                 </div>
             </div>
-            <div className="form-group">
-                <label>Teléfono</label>
-                <input
-                    type="text"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
+
+            <div className="form-row">
+                <div className="form-group">
+                    <label>Teléfono</label>
+                    <input
+                        type="text"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Obra Social</label>
+                    <input
+                        type="text"
+                        value={formData.obra_social}
+                        onChange={(e) => setFormData({ ...formData, obra_social: e.target.value })}
+                    />
+                </div>
             </div>
+
+            <div className="form-row">
+                <div className="form-group">
+                    <label>Fecha de Nacimiento</label>
+                    <input
+                        type="date"
+                        value={formData.birth_date}
+                        onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Fecha de Ingreso</label>
+                    <input
+                        type="date"
+                        value={formData.start_date}
+                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    />
+                </div>
+            </div>
+
+            <div className="form-section-title">En caso de emergencia</div>
+            <div className="form-row">
+                <div className="form-group">
+                    <label>Contacto (Nombre)</label>
+                    <input
+                        type="text"
+                        value={formData.emergency_contact_name}
+                        onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Teléfono de Emergencia</label>
+                    <input
+                        type="text"
+                        value={formData.emergency_contact_phone}
+                        onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+                    />
+                </div>
+            </div>
+
             <div className="form-actions">
                 <button type="submit" className="btn btn-primary">{submitLabel}</button>
             </div>
             <style jsx>{`
                 .employee-form { display: flex; flex-direction: column; gap: 1rem; }
+                .form-photo-section { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 0.5rem; background: var(--background); padding: 1rem; border-radius: var(--radius-md); }
+                .photo-preview { width: 80px; height: 80px; background: var(--surface); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--border); }
+                .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+                .photo-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+                .btn-upload { background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; }
+                .btn-remove { background: none; border: none; color: #b91c1c; font-size: 0.8rem; cursor: pointer; padding: 0; }
                 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
                 .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
                 .form-group label { font-weight: 600; font-size: 0.9rem; }
-                .form-group input, .form-group select { padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; }
+                .form-group input, .form-group select { padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; background: var(--surface); color: var(--text-main); }
+                .form-section-title { font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
                 .form-actions { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border); }
             `}</style>
         </form>
@@ -310,7 +461,6 @@ export default function PersonnelPage() {
                 </button>
             </div>
 
-            {/* Tabs */}
             <div className="tabs">
                 <button
                     className={`tab ${activeTab === 'employees' ? 'active' : ''}`}
@@ -332,7 +482,6 @@ export default function PersonnelPage() {
                 </button>
             </div>
 
-            {/* Content */}
             {loading ? (
                 <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando datos...</div>
             ) : (
@@ -354,6 +503,7 @@ export default function PersonnelPage() {
                                     <thead>
                                         <tr>
                                             <th>Nombre</th>
+                                            <th>DNI</th>
                                             <th>Rol</th>
                                             <th>Sede Asignada</th>
                                             <th>Teléfono</th>
@@ -364,9 +514,17 @@ export default function PersonnelPage() {
                                         {filtered.map((emp) => (
                                             <tr key={emp.id}>
                                                 <td>
-                                                    <strong>{emp.full_name}</strong>
-                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{emp.email}</div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--background)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            {emp.avatar_url ? <img src={emp.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={16} />}
+                                                        </div>
+                                                        <div>
+                                                            <strong>{emp.full_name}</strong>
+                                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{emp.email}</div>
+                                                        </div>
+                                                    </div>
                                                 </td>
+                                                <td>{emp.dni || '-'}</td>
                                                 <td style={{ textTransform: 'capitalize' }}>{emp.role}</td>
                                                 <td>{emp.stadiums?.name || 'Oficina'}</td>
                                                 <td>{emp.phone || '-'}</td>
@@ -463,7 +621,6 @@ export default function PersonnelPage() {
                 </>
             )}
 
-            {/* Modals */}
             <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nuevo Empleado">
                 <EmployeeForm onSubmit={handleCreateEmployee} submitLabel="Crear Empleado" />
             </Modal>
@@ -493,7 +650,13 @@ export default function PersonnelPage() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
+          padding: 0.75rem 1.25rem;
+          border-radius: var(--radius-md);
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
         }
+        .btn-primary { background: var(--primary); color: white; }
 
         .tabs {
           display: flex;

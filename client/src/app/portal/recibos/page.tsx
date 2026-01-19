@@ -1,6 +1,5 @@
-"use client";
-
-import { FileText, Download, Calendar } from 'lucide-react';
+import Link from 'next/link';
+import { FileText, Download, Calendar, ArrowLeft, Home } from 'lucide-react';
 
 export default function RecibosPage() {
   // Mock data
@@ -15,6 +14,14 @@ export default function RecibosPage() {
   return (
     <div className="recibos-page">
       <header className="page-header">
+        <div className="header-nav">
+          <Link href="/portal/dashboard" className="back-btn" title="Volver al portal">
+            <ArrowLeft size={20} />
+          </Link>
+          <Link href="/" className="home-btn" title="Ir al inicio">
+            <Home size={20} />
+          </Link>
+        </div>
         <div className="header-content">
           <h1>Recibos de Sueldo</h1>
         </div>
@@ -57,6 +64,33 @@ export default function RecibosPage() {
           background: linear-gradient(135deg, #1a472a 0%, #2d5a27 100%);
           color: white;
           padding: 1.5rem;
+        }
+
+        .header-nav {
+          max-width: 600px;
+          margin: 0 auto 1rem;
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .back-btn,
+        .home-btn {
+          background: rgba(255,255,255,0.1);
+          border: none;
+          color: white !important;
+          padding: 0.5rem;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          transition: background 0.2s;
+        }
+
+        .back-btn:hover,
+        .home-btn:hover {
+          background: rgba(255,255,255,0.25);
         }
 
         .header-content {

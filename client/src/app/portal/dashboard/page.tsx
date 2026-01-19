@@ -15,7 +15,8 @@ import {
   ChevronRight,
   LogOut,
   Newspaper,
-  Bell
+  Bell,
+  Home
 } from 'lucide-react';
 
 interface News {
@@ -44,10 +45,17 @@ export default function PortalDashboard() {
         .order('created_at', { ascending: false })
         .limit(3);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST204' || error.code === 'PGRST205' || error.code === '42P01') {
+          console.warn('La tabla news no existe aún. Por favor ejecute las migraciones.');
+        } else {
+          throw error;
+        }
+      }
       setNews(data || []);
     } catch (error) {
       console.error('Error loading news:', error);
+      setNews([]); // Ensure we don't leave it loading forever
     } finally {
       setLoadingNews(false);
     }
@@ -70,9 +78,14 @@ export default function PortalDashboard() {
             <p className="role-chip">{user.role}</p>
           </div>
         </div>
-        <button onClick={logout} className="logout-btn">
-          <LogOut size={20} />
-        </button>
+        <div className="header-actions">
+          <Link href="/" className="home-btn" title="Volver al inicio">
+            <Home size={20} />
+          </Link>
+          <button onClick={logout} className="logout-btn" title="Cerrar sesión">
+            <LogOut size={20} />
+          </button>
+        </div>
       </header>
 
       <main className="portal-main">
@@ -228,6 +241,12 @@ export default function PortalDashboard() {
           margin-top: 0.25rem;
         }
 
+        .header-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .home-btn,
         .logout-btn {
           background: rgba(255,255,255,0.1);
           border: none;
@@ -235,6 +254,16 @@ export default function PortalDashboard() {
           padding: 0.5rem;
           border-radius: 10px;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.2s;
+          text-decoration: none;
+        }
+
+        .home-btn:hover,
+        .logout-btn:hover {
+          background: rgba(255,255,255,0.25);
         }
 
         .portal-main {

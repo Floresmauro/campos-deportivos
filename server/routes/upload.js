@@ -14,7 +14,15 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
  * @desc General file upload to Supabase Storage
  * @access Admin/Manager
  */
-router.post('/', authMiddleware, requireAdminOrManager, upload.single('file'), async (req, res) => {
+router.post('/', authMiddleware, async (req, res, next) => {
+    const { bucket = 'general' } = req.body;
+    // If bucket is avatars, any authenticated user can upload.
+    // Otherwise, check for Admin/Manager role.
+    if (bucket === 'avatars') {
+        return next();
+    }
+    requireAdminOrManager(req, res, next);
+}, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No se subió ningún archivo' });

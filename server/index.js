@@ -38,6 +38,14 @@ app.get('/', (req, res) => {
     });
 });
 
+// Base API route
+app.get('/api', (req, res) => {
+    res.json({
+        message: 'Campos Deportivos API Base Endpoint',
+        status: 'online'
+    });
+});
+
 // Auth routes (public)
 app.use('/api/auth', require('./routes/auth'));
 

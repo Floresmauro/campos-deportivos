@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { MapPin, CheckCircle, XCircle, Clock, Navigation } from 'lucide-react';
+import { MapPin, CheckCircle, XCircle, Clock, Navigation, ArrowLeft, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
 
 // Dynamically import QRScanner to avoid SSR issues
 const QRScanner = dynamic(() => import('@/components/common/QRScanner'), {
@@ -106,10 +107,20 @@ export default function QRAttendancePage() {
 
   return (
     <div className="portal-container">
-      <div className="attendance-header">
-        <h1>Fichaje por QR</h1>
-        <p>Registra tu entrada o salida escaneando el código de la sede</p>
-      </div>
+      <header className="page-header">
+        <div className="header-nav">
+          <Link href="/portal/dashboard" className="back-btn" title="Volver al portal">
+            <ArrowLeft size={20} />
+          </Link>
+          <Link href="/" className="home-btn" title="Ir al inicio">
+            <Home size={20} />
+          </Link>
+        </div>
+        <div className="attendance-header">
+          <h1>Fichaje por QR</h1>
+          <p>Registra tu entrada o salida escaneando el código de la sede</p>
+        </div>
+      </header>
 
       <div className="attendance-card">
         {status === 'idle' && (
@@ -195,18 +206,58 @@ export default function QRAttendancePage() {
         .portal-container {
           max-width: 600px;
           margin: 0 auto;
-          padding: 2rem 1rem;
+          padding: 1rem;
+        }
+
+        .page-header {
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 100%);
+          color: white;
+          padding: 1.5rem;
+          margin: -1rem -1rem 2rem -1rem;
+          border-bottom-left-radius: 20px;
+          border-bottom-right-radius: 20px;
+        }
+
+        .header-nav {
+          display: flex;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .back-btn,
+        .home-btn {
+          background: rgba(255,255,255,0.1);
+          border: none;
+          color: white !important;
+          padding: 0.5rem;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          transition: background 0.2s;
+        }
+
+        .back-btn:hover,
+        .home-btn:hover {
+          background: rgba(255,255,255,0.25);
         }
 
         .attendance-header {
           text-align: center;
-          margin-bottom: 2rem;
         }
 
         .attendance-header h1 {
-          font-size: 1.75rem;
-          color: var(--primary);
+          font-size: 1.5rem;
+          color: white !important;
           margin-bottom: 0.5rem;
+        }
+
+        .attendance-header p {
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.9rem;
+          margin: 0;
         }
 
         .attendance-card {

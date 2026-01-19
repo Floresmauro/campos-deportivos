@@ -2,8 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Truck, CheckCircle, XCircle, Info, RefreshCw, Move } from 'lucide-react';
+import { Truck, CheckCircle, XCircle, Info, RefreshCw, Move, ArrowLeft, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 
 const QRScanner = dynamic(() => import('@/components/common/QRScanner'), {
   ssr: false,
@@ -68,10 +69,20 @@ export default function QRAssetsPage() {
 
   return (
     <div className="portal-container">
-      <div className="assets-header">
-        <h1>Movimiento de Activos</h1>
-        <p>Escanea el código QR de la maquinaria para registrar su traslado o recepción</p>
-      </div>
+      <header className="page-header">
+        <div className="header-nav">
+          <Link href="/portal/dashboard" className="back-btn" title="Volver al portal">
+            <ArrowLeft size={20} />
+          </Link>
+          <Link href="/" className="home-btn" title="Ir al inicio">
+            <Home size={20} />
+          </Link>
+        </div>
+        <div className="assets-header">
+          <h1>Movimiento de Activos</h1>
+          <p>Escanea el código QR de la maquinaria para registrar su traslado o recepción</p>
+        </div>
+      </header>
 
       <div className="assets-card">
         {status === 'idle' && (
@@ -175,17 +186,58 @@ export default function QRAssetsPage() {
         .portal-container {
           max-width: 600px;
           margin: 0 auto;
-          padding: 2rem 1rem;
+          padding: 1rem;
+        }
+
+        .page-header {
+          background: linear-gradient(135deg, #1a472a 0%, #2d5a27 100%);
+          color: white;
+          padding: 1.5rem;
+          margin: -1rem -1rem 2rem -1rem;
+          border-bottom-left-radius: 20px;
+          border-bottom-right-radius: 20px;
+        }
+
+        .header-nav {
+          display: flex;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .back-btn,
+        .home-btn {
+          background: rgba(255,255,255,0.1);
+          border: none;
+          color: white !important;
+          padding: 0.5rem;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          transition: background 0.2s;
+        }
+
+        .back-btn:hover,
+        .home-btn:hover {
+          background: rgba(255,255,255,0.25);
         }
 
         .assets-header {
           text-align: center;
-          margin-bottom: 2rem;
         }
 
         .assets-header h1 {
-          font-size: 1.75rem;
-          color: var(--primary);
+          font-size: 1.5rem;
+          color: white !important;
+          margin-bottom: 0.5rem;
+        }
+
+        .assets-header p {
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.9rem;
+          margin: 0;
         }
 
         .assets-card {
