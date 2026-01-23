@@ -1,15 +1,47 @@
 "use client";
 
-import { Building2, Users, Wrench, AlertTriangle, MapPin } from 'lucide-react';
+import { Building2, Users, Wrench, AlertTriangle, MapPin, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminDashboard() {
-  // Mock data
-  const stats = [
-    { label: 'Predios Gestionados', value: 12, icon: <Building2 size={24} />, color: '#003366' },
-    { label: 'Empleados', value: 87, icon: <Users size={24} />, color: '#2E8B57' },
-    { label: 'Maquinarias', value: 34, icon: <Wrench size={24} />, color: '#6B7280' },
-    { label: 'Alertas', value: 3, icon: <AlertTriangle size={24} />, color: '#DC2626' },
-  ];
+  const [stats, setStats] = useState([
+    { label: 'Predios Gestionados', value: 0, icon: <Building2 size={24} />, color: '#003366' },
+    { label: 'Empleados', value: 0, icon: <Users size={24} />, color: '#2E8B57' },
+    { label: 'Maquinarias', value: 0, icon: <Wrench size={24} />, color: '#6B7280' },
+    { label: 'Alertas', value: 0, icon: <AlertTriangle size={24} />, color: '#DC2626' },
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const [
+        { count: stadiumsCount },
+        { count: profilesCount },
+        { count: assetsCount }
+      ] = await Promise.all([
+        supabase.from('stadiums').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('assets').select('*', { count: 'exact', head: true })
+      ]);
+
+      setStats([
+        { label: 'Predios Gestionados', value: stadiumsCount || 0, icon: <Building2 size={24} />, color: '#003366' },
+        { label: 'Empleados', value: profilesCount || 0, icon: <Users size={24} />, color: '#2E8B57' },
+        { label: 'Maquinarias', value: assetsCount || 0, icon: <Wrench size={24} />, color: '#6B7280' },
+        { label: 'Alertas', value: 3, icon: <AlertTriangle size={24} />, color: '#DC2626' }, // Keep dummy for now
+      ]);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="admin-dashboard">
@@ -24,7 +56,9 @@ export default function AdminDashboard() {
           <div key={i} className="stat-card" style={{ '--stat-color': stat.color } as React.CSSProperties}>
             <div className="stat-icon">{stat.icon}</div>
             <div>
-              <span className="stat-value">{stat.value}</span>
+              <span className="stat-value">
+                {loading ? <Loader2 className="animate-spin" size={20} /> : stat.value}
+              </span>
               <span className="stat-label">{stat.label}</span>
             </div>
           </div>

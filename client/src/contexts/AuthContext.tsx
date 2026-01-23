@@ -40,27 +40,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Check if user is logged in on mount
     useEffect(() => {
+        let mounted = true;
+
         const initAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                await fetchUserProfile(session.user.id, session.user.email!);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session && mounted) {
+                    await fetchUserProfile(session.user.id, session.user.email!);
+                }
+            } catch (error) {
+                console.error('Error during initial auth:', error);
+            } finally {
+                if (mounted) setLoading(false);
             }
-            setLoading(false);
         };
 
         initAuth();
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session) {
-                await fetchUserProfile(session.user.id, session.user.email!);
-            } else {
-                setUser(null);
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) {
+                if (session && mounted) {
+                    await fetchUserProfile(session.user.id, session.user.email!);
+                    setLoading(false);
+                }
+            } else if (event === 'SIGNED_OUT') {
+                if (mounted) {
+                    setUser(null);
+                    setLoading(false);
+                }
             }
-            setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const fetchUserProfile = async (userId: string, email: string) => {

@@ -4,11 +4,11 @@ import { MapPin } from 'lucide-react';
 
 export default function PortfolioPage() {
   const projects = [
-    { name: "Gestión Racing Club", location: "Avellaneda, Buenos Aires", img: "racing.jpg", desc: "Mantenimiento integral y tratamiento de césped en Estadio Principal y Predio Tita Mattiussi." },
-    { name: "Mantenimiento Banfield", location: "Banfield, Buenos Aires", img: "banfield.jpg", desc: "Gestión técnica de superficies deportivas aplicadas al fútbol de alto rendimiento." },
-    { name: "Renovación Defensa y Justicia", location: "Florencio Varela, Buenos Aires", img: "defensa.jpg", desc: "Planificación y ejecución de resembrado y optimización de sistemas de riego." },
-    { name: "Soporte Argentinos Juniors", location: "La Paternal, CABA", img: "argentinos.jpg", desc: "Control de calidad y mantenimiento preventivo de superficie profesional." },
-    { name: "Logística Polideportivo Chacarita", location: "San Martín, Buenos Aires", img: "chacarita.jpg", desc: "Coordinación de personal y maquinaria para mantenimiento multideporte." },
+    { name: "Gestión Racing Club", location: "Avellaneda, Buenos Aires", img: "racing.png", desc: "Mantenimiento integral y tratamiento de césped en Estadio Principal y Predio Tita Mattiussi." },
+    { name: "Mantenimiento Banfield", location: "Banfield, Buenos Aires", img: "banfield.png", desc: "Gestión técnica de superficies deportivas aplicadas al fútbol de alto rendimiento." },
+    { name: "Renovación Defensa y Justicia", location: "Florencio Varela, Buenos Aires", img: "defensa.png", desc: "Planificación y ejecución de resembrado y optimización de sistemas de riego." },
+    { name: "Soporte Argentinos Juniors", location: "La Paternal, CABA", img: "argentinos.png", desc: "Control de calidad y mantenimiento preventivo de superficie profesional." },
+    { name: "Logística Polideportivo Chacarita", location: "San Martín, Buenos Aires", img: "chacarita.png", desc: "Coordinación de personal y maquinaria para mantenimiento multideporte." },
   ];
 
   return (
@@ -25,8 +25,8 @@ export default function PortfolioPage() {
           <div className="portfolio-grid">
             {projects.map((project, index) => (
               <div key={index} className="project-card">
-                <div className="image-placeholder-card">
-                  <span className="placeholder-text">Imagen: {project.img}</span>
+                <div className="project-image">
+                  <img src={`/images/stadiums/${project.img}`} alt={project.name} />
                 </div>
                 <div className="project-content">
                   <h3>{project.name}</h3>
@@ -90,15 +90,22 @@ export default function PortfolioPage() {
           box-shadow: var(--shadow-md);
         }
 
-        .image-placeholder-card {
+        .project-image {
           width: 100%;
-          height: 200px;
-          background-color: var(--background);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--text-secondary);
+          height: 220px;
+          overflow: hidden;
           border-bottom: 1px solid var(--border);
+        }
+        
+        .project-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s;
+        }
+
+        .project-card:hover .project-image img {
+          transform: scale(1.05);
         }
 
         .project-content {

@@ -15,6 +15,7 @@ interface Asset {
   current_stadium_id: string | null;
   location: string;
   notes?: string | null;
+  technical_specs?: Record<string, string> | null;
   created_at: string;
   location_display?: string;
 }
@@ -35,6 +36,7 @@ export default function AssetsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isSpecsModalOpen, setIsSpecsModalOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   // Form states
@@ -286,6 +288,14 @@ export default function AssetsPage() {
                 <span><QrCode size={14} /> {asset.serial_number}</span>
                 <span>{asset.location_display}</span>
                 {asset.notes && <p className="asset-notes">{asset.notes}</p>}
+                {asset.technical_specs && Object.keys(asset.technical_specs).length > 0 && (
+                  <button
+                    className="specs-trigger"
+                    onClick={() => { setSelectedAsset(asset); setIsSpecsModalOpen(true); }}
+                  >
+                    Ver Ficha Técnica
+                  </button>
+                )}
               </div>
               <div className="asset-footer">
                 <span className={`status-badge ${statusLabels[asset.status]?.class}`}>
@@ -344,6 +354,27 @@ export default function AssetsPage() {
         )}
       </Modal>
 
+      <Modal isOpen={isSpecsModalOpen} onClose={() => { setIsSpecsModalOpen(false); setSelectedAsset(null); }} title={`Ficha Técnica: ${selectedAsset?.name}`}>
+        {selectedAsset && selectedAsset.technical_specs && (
+          <div className="specs-modal-content">
+            <div className="specs-grid">
+              {Object.entries(selectedAsset.technical_specs).map(([key, value]) => (
+                <div key={key} className="spec-item">
+                  <span className="spec-key">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                  <span className="spec-value">{value}</span>
+                </div>
+              ))}
+            </div>
+            {selectedAsset.notes && (
+              <div className="specs-notes">
+                <h4>Observaciones Adicionales</h4>
+                <p>{selectedAsset.notes}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
       <style jsx>{`
         .assets-page { max-width: 1200px; }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
@@ -384,6 +415,63 @@ export default function AssetsPage() {
         .qr-container { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
         .qr-content { background: var(--surface); padding: 1.5rem; border: 1px solid var(--border); border-radius: 12px; text-align: center; }
         .filter-select { padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text-main); }
+        .specs-trigger {
+          margin-top: 0.75rem;
+          background: none;
+          border: 1px solid var(--primary);
+          color: var(--primary);
+          padding: 0.4rem 0.8rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          width: fit-content;
+        }
+        .specs-trigger:hover {
+          background: var(--primary);
+          color: white;
+        }
+        .specs-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          margin-bottom: 2rem;
+        }
+        .spec-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          padding: 0.75rem;
+          background: var(--background);
+          border-radius: 8px;
+          border: 1px solid var(--border);
+        }
+        .spec-key {
+          font-size: 0.75rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          font-weight: 700;
+        }
+        .spec-value {
+          font-size: 0.95rem;
+          color: var(--text-main);
+          font-weight: 500;
+        }
+        .specs-notes {
+          padding-top: 1.5rem;
+          border-top: 1px solid var(--border);
+        }
+        .specs-notes h4 {
+          font-size: 0.9rem;
+          margin-bottom: 0.5rem;
+          color: var(--primary);
+        }
+        .specs-notes p {
+          font-size: 0.9rem;
+          line-height: 1.5;
+          color: var(--text-secondary);
+        }
       `}</style>
     </div>
   );
