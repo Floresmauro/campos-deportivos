@@ -14,6 +14,7 @@ interface Asset {
   status: string;
   current_stadium_id: string | null;
   location: string;
+  notes?: string | null;
   created_at: string;
   location_display?: string;
 }
@@ -43,7 +44,8 @@ export default function AssetsPage() {
     serial_number: '',
     status: 'available',
     current_stadium_id: '',
-    location: ''
+    location: '',
+    notes: ''
   });
 
   // Load data on mount
@@ -150,14 +152,15 @@ export default function AssetsPage() {
       serial_number: asset.serial_number || '',
       status: asset.status,
       current_stadium_id: asset.current_stadium_id || '',
-      location: asset.location || ''
+      location: asset.location || '',
+      notes: asset.notes || ''
     });
     setIsEditModalOpen(true);
   };
 
   const resetForm = () => {
     setFormData({
-      name: '', type: 'machinery', serial_number: '', status: 'available', current_stadium_id: '', location: ''
+      name: '', type: 'machinery', serial_number: '', status: 'available', current_stadium_id: '', location: '', notes: ''
     });
   };
 
@@ -220,6 +223,15 @@ export default function AssetsPage() {
           <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
         </div>
       </div>
+      <div className="form-group">
+        <label>Observaciones</label>
+        <textarea
+          value={formData.notes || ''}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          rows={3}
+          placeholder="Detalles adicionales, mantenimiento, especificaciones..."
+        />
+      </div>
       <div className="form-actions">
         <button type="submit" className="btn btn-primary">{submitLabel}</button>
       </div>
@@ -273,6 +285,7 @@ export default function AssetsPage() {
               <div className="asset-meta">
                 <span><QrCode size={14} /> {asset.serial_number}</span>
                 <span>{asset.location_display}</span>
+                {asset.notes && <p className="asset-notes">{asset.notes}</p>}
               </div>
               <div className="asset-footer">
                 <span className={`status-badge ${statusLabels[asset.status]?.class}`}>
@@ -346,6 +359,17 @@ export default function AssetsPage() {
         .status-dot.warning { background: #f59e0b; }
         .status-dot.error { background: #ef4444; }
         .asset-meta { font-size: 0.85rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem; }
+        .asset-notes { 
+          margin-top: 0.5rem; 
+          font-style: italic; 
+          font-size: 0.8rem; 
+          border-left: 2px solid var(--border); 
+          padding-left: 0.5rem;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
         .asset-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1rem; }
         .status-badge { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
         .status-badge.success { background: #dcfce7; color: #166534; }

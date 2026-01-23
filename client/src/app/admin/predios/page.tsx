@@ -6,7 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabase';
 import Modal from '@/components/Modal';
 
-interface Stadium {
+interface Predio {
   id: string;
   name: string;
   address: string;
@@ -17,8 +17,8 @@ interface Stadium {
   created_at: string;
 }
 
-export default function StadiumsPage() {
-  const [stadiums, setStadiums] = useState<Stadium[]>([]);
+export default function PrediosPage() {
+  const [predios, setPredios] = useState<Predio[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -26,7 +26,7 @@ export default function StadiumsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [selectedStadium, setSelectedStadium] = useState<Stadium | null>(null);
+  const [selectedPredio, setSelectedPredio] = useState<Predio | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -39,10 +39,10 @@ export default function StadiumsPage() {
   });
 
   useEffect(() => {
-    loadStadiums();
+    loadPredios();
   }, []);
 
-  const loadStadiums = async () => {
+  const loadPredios = async () => {
     try {
       const { data, error } = await supabase
         .from('stadiums')
@@ -50,9 +50,9 @@ export default function StadiumsPage() {
         .order('name');
 
       if (error) throw error;
-      setStadiums(data || []);
+      setPredios(data || []);
     } catch (error) {
-      console.error('Error loading stadiums:', error);
+      console.error('Error loading predios:', error);
     } finally {
       setLoading(false);
     }
@@ -86,11 +86,11 @@ export default function StadiumsPage() {
 
       setIsCreateModalOpen(false);
       resetForm();
-      loadStadiums();
+      loadPredios();
 
-      // Show QR modal for new stadium
+      // Show QR modal for new predio
       if (data) {
-        setSelectedStadium(data);
+        setSelectedPredio(data);
         setIsQrModalOpen(true);
       }
     } catch (error: any) {
@@ -100,7 +100,7 @@ export default function StadiumsPage() {
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedStadium) return;
+    if (!selectedPredio) return;
 
     try {
       const updateData = {
@@ -112,63 +112,63 @@ export default function StadiumsPage() {
         status: formData.status
       };
 
-      const { error } = await supabase.from('stadiums').update(updateData).eq('id', selectedStadium.id);
+      const { error } = await supabase.from('stadiums').update(updateData).eq('id', selectedPredio.id);
       if (error) throw error;
 
       setIsEditModalOpen(false);
-      setSelectedStadium(null);
+      setSelectedPredio(null);
       resetForm();
-      loadStadiums();
+      loadPredios();
     } catch (error: any) {
       alert('Error: ' + error.message);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este estadio?')) return;
+    if (!confirm('¿Estás seguro de eliminar este predio?')) return;
 
     try {
       const { error } = await supabase.from('stadiums').delete().eq('id', id);
       if (error) throw error;
-      loadStadiums();
+      loadPredios();
     } catch (error: any) {
       alert('Error: ' + error.message);
     }
   };
 
-  const openEditModal = (stadium: Stadium) => {
-    setSelectedStadium(stadium);
+  const openEditModal = (predio: Predio) => {
+    setSelectedPredio(predio);
     setFormData({
-      name: stadium.name,
-      address: stadium.address || '',
-      city: stadium.city || '',
-      location_lat: stadium.location_lat?.toString() || '',
-      location_lng: stadium.location_lng?.toString() || '',
-      status: stadium.status || 'active'
+      name: predio.name,
+      address: predio.address || '',
+      city: predio.city || '',
+      location_lat: predio.location_lat?.toString() || '',
+      location_lng: predio.location_lng?.toString() || '',
+      status: predio.status || 'active'
     });
     setIsEditModalOpen(true);
   };
 
-  const openQrModal = (stadium: Stadium) => {
-    setSelectedStadium(stadium);
+  const openQrModal = (predio: Predio) => {
+    setSelectedPredio(predio);
     setIsQrModalOpen(true);
   };
 
-  const filtered = stadiums.filter(s =>
+  const filtered = predios.filter(s =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (s.city || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const StadiumForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string }) => (
+  const PredioForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string }) => (
     <form onSubmit={onSubmit} className="stadium-form">
       <div className="form-group">
-        <label>Nombre del Estadio *</label>
+        <label>Nombre del Predio *</label>
         <input
           type="text"
           value={formData.name}
           onChange={e => setFormData({ ...formData, name: e.target.value })}
           required
-          placeholder="Ej: Estadio Racing Club"
+          placeholder="Ej: Predio Racing Club"
         />
       </div>
       <div className="form-group">
@@ -243,12 +243,12 @@ export default function StadiumsPage() {
     <div className="stadiums-page">
       <div className="page-header">
         <div>
-          <h1>Gestión de Estadios</h1>
-          <p>Administre las sedes para fichaje de personal.</p>
+          <h1>Gestión de Predios</h1>
+          <p>Administre los predios para fichaje de personal.</p>
         </div>
         <button className="btn btn-primary" onClick={() => { resetForm(); setIsCreateModalOpen(true); }}>
           <Plus size={18} />
-          Nuevo Estadio
+          Nuevo Predio
         </button>
       </div>
 
@@ -263,11 +263,11 @@ export default function StadiumsPage() {
       </div>
 
       {loading ? (
-        <div className="loading-state">Cargando estadios...</div>
-      ) : stadiums.length === 0 ? (
+        <div className="loading-state">Cargando predios...</div>
+      ) : predios.length === 0 ? (
         <div className="empty-state">
           <MapPin size={48} />
-          <p>No hay estadios registrados. Crea el primero.</p>
+          <p>No hay predios registrados. Crea el primero.</p>
         </div>
       ) : (
         <div className="table-wrapper">
@@ -282,30 +282,30 @@ export default function StadiumsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((stadium) => (
-                <tr key={stadium.id}>
+              {filtered.map((predio) => (
+                <tr key={predio.id}>
                   <td>
                     <div className="cell-with-icon">
                       <MapPin size={16} />
-                      {stadium.name}
+                      {predio.name}
                     </div>
                   </td>
-                  <td>{stadium.city || '-'}</td>
-                  <td>{stadium.address || '-'}</td>
+                  <td>{predio.city || '-'}</td>
+                  <td>{predio.address || '-'}</td>
                   <td>
-                    <span className={`status-badge ${stadium.status === 'active' ? 'active' : stadium.status === 'maintenance' ? 'maintenance' : 'inactive'}`}>
-                      {stadium.status === 'active' ? 'Activo' : stadium.status === 'maintenance' ? 'Mantenimiento' : 'Inactivo'}
+                    <span className={`status-badge ${predio.status === 'active' ? 'active' : predio.status === 'maintenance' ? 'maintenance' : 'inactive'}`}>
+                      {predio.status === 'active' ? 'Activo' : predio.status === 'maintenance' ? 'Mantenimiento' : 'Inactivo'}
                     </span>
                   </td>
                   <td>
                     <div className="action-btns">
-                      <button className="icon-btn qr" onClick={() => openQrModal(stadium)} title="Ver QR">
+                      <button className="icon-btn qr" onClick={() => openQrModal(predio)} title="Ver QR">
                         <QrCode size={16} />
                       </button>
-                      <button className="icon-btn edit" onClick={() => openEditModal(stadium)} title="Editar">
+                      <button className="icon-btn edit" onClick={() => openEditModal(predio)} title="Editar">
                         <Pencil size={16} />
                       </button>
-                      <button className="icon-btn delete" onClick={() => handleDelete(stadium.id)} title="Eliminar">
+                      <button className="icon-btn delete" onClick={() => handleDelete(predio.id)} title="Eliminar">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -318,23 +318,23 @@ export default function StadiumsPage() {
       )}
 
       {/* Create Modal */}
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nuevo Estadio">
-        <StadiumForm onSubmit={handleCreate} submitLabel="Crear Estadio" />
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nuevo Predio">
+        <PredioForm onSubmit={handleCreate} submitLabel="Crear Predio" />
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedStadium(null); }} title="Editar Estadio">
-        <StadiumForm onSubmit={handleEdit} submitLabel="Guardar Cambios" />
+      <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedPredio(null); }} title="Editar Predio">
+        <PredioForm onSubmit={handleEdit} submitLabel="Guardar Cambios" />
       </Modal>
 
       {/* QR Modal */}
-      <Modal isOpen={isQrModalOpen} onClose={() => { setIsQrModalOpen(false); setSelectedStadium(null); }} title="Código QR para Fichaje">
-        {selectedStadium && (
+      <Modal isOpen={isQrModalOpen} onClose={() => { setIsQrModalOpen(false); setSelectedPredio(null); }} title="Código QR para Fichaje">
+        {selectedPredio && (
           <div className="qr-container">
             <div className="qr-preview">
-              <QRCodeSVG value={selectedStadium.id} size={200} level="H" includeMargin={true} fgColor="#1a472a" />
+              <QRCodeSVG value={selectedPredio.id} size={200} level="H" includeMargin={true} fgColor="#1a472a" />
             </div>
-            <h3>{selectedStadium.name}</h3>
+            <h3>{selectedPredio.name}</h3>
             <p>Los empleados pueden escanear este código para fichar su entrada/salida.</p>
             <button className="btn btn-primary btn-block" onClick={() => window.print()}>
               Imprimir QR

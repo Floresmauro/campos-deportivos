@@ -17,7 +17,7 @@ export default function ReportsPage() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalEmployees: 0,
-        totalStadiums: 0,
+        totalPredios: 0,
         totalAssets: 0,
         attendanceLast7Days: [] as any[],
         assetsByStatus: {} as any,
@@ -75,7 +75,7 @@ export default function ReportsPage() {
 
             setStats({
                 totalEmployees: empCount || 0,
-                totalStadiums: stadiumCount || 0,
+                totalPredios: stadiumCount || 0,
                 totalAssets: assetCount || 0,
                 attendanceLast7Days: attendanceChart,
                 assetsByStatus: assetStatusMap || {},
@@ -112,8 +112,8 @@ export default function ReportsPage() {
                 <div className="report-card">
                     <div className="icon-box green"><Building2 size={24} /></div>
                     <div className="content">
-                        <h3>{stats.totalStadiums}</h3>
-                        <p>Sedes Activas</p>
+                        <h3>{stats.totalPredios}</h3>
+                        <p>Predios Gestionados</p>
                     </div>
                 </div>
                 <div className="report-card">

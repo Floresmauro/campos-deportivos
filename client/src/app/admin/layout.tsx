@@ -17,15 +17,16 @@ import {
   X,
   Sun,
   Moon,
-  QrCode
+  QrCode,
+  Home
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
 
 const navItems = [
   { href: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-  { href: '/admin/estadios', icon: <Building2 size={20} />, label: 'Estadios' },
+  { href: '/admin/predios', icon: <Building2 size={20} />, label: 'Predios' },
   { href: '/admin/activos', icon: <Wrench size={20} />, label: 'Activos' },
   { href: '/admin/personal', icon: <Users size={20} />, label: 'Personal' },
   { href: '/admin/asistencia', icon: <Clock size={20} />, label: 'Asistencia' },
@@ -53,17 +54,26 @@ export default function AdminLayout({
     }
   };
 
-  if (!loading && !user) {
-    router.push('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push('/login');
+      } else if (user.role === 'employee') {
+        router.push('/portal/dashboard');
+      }
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <p>Cargando...</p>
+        <p>Cargando administración...</p>
       </div>
     );
+  }
+
+  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+    return null;
   }
 
   return (
@@ -127,6 +137,10 @@ export default function AdminLayout({
         </nav>
 
         <div className="sidebar-footer">
+          <Link href="/" className="nav-item">
+            <Home size={20} />
+            <span>Volver al Sitio</span>
+          </Link>
           <Link href="/admin/config" className="nav-item">
             <Settings size={20} />
             <span>Configuración</span>

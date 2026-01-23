@@ -5,7 +5,7 @@ import { Building2, Users, Wrench, AlertTriangle, MapPin } from 'lucide-react';
 export default function AdminDashboard() {
   // Mock data
   const stats = [
-    { label: 'Estadios Activos', value: 12, icon: <Building2 size={24} />, color: '#003366' },
+    { label: 'Predios Gestionados', value: 12, icon: <Building2 size={24} />, color: '#003366' },
     { label: 'Empleados', value: 87, icon: <Users size={24} />, color: '#2E8B57' },
     { label: 'Maquinarias', value: 34, icon: <Wrench size={24} />, color: '#6B7280' },
     { label: 'Alertas', value: 3, icon: <AlertTriangle size={24} />, color: '#DC2626' },

@@ -40,7 +40,7 @@ router.get('/my', authMiddleware, async (req, res) => {
 // Create request
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { type, start_date, end_date, reason } = req.body;
+        const { type, start_date, end_date, reason, file_url } = req.body;
 
         const { data, error } = await supabase
             .from('requests')
@@ -50,6 +50,7 @@ router.post('/', authMiddleware, async (req, res) => {
                 start_date,
                 end_date,
                 reason,
+                file_url,
                 status: 'pending'
             }])
             .select()

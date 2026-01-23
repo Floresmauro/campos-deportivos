@@ -16,7 +16,8 @@ import {
   LogOut,
   Newspaper,
   Bell,
-  Home
+  Home,
+  ShieldCheck
 } from 'lucide-react';
 
 interface News {
@@ -110,6 +111,17 @@ export default function PortalDashboard() {
               </div>
               <ChevronRight size={20} className="arrow" />
             </Link>
+
+            {(user.role === 'admin' || user.role === 'manager') && (
+              <Link href="/admin" className="action-card admin">
+                <div className="card-icon"><ShieldCheck size={32} /></div>
+                <div className="card-text">
+                  <h3>Panel de Administración</h3>
+                  <p>Gestión de nómina, personal y sedes</p>
+                </div>
+                <ChevronRight size={20} className="arrow" />
+              </Link>
+            )}
           </div>
         </section>
 
@@ -314,6 +326,7 @@ export default function PortalDashboard() {
 
         .primary .card-icon { background: #e0f2fe; color: #0369a1; }
         .secondary .card-icon { background: #fef3c7; color: #b45309; }
+        .admin .card-icon { background: #dcfce7; color: #15803d; }
 
         .card-text { flex: 1; }
         .card-text h3 { font-size: 1rem; color: var(--text-main); margin-bottom: 0.2rem; }

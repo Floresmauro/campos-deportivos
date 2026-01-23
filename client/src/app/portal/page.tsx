@@ -28,7 +28,21 @@ export default function PortalLoginPage() {
 
     try {
       await login(email, password);
-      router.push('/portal/dashboard');
+      // Redirección inteligente basada en rol
+      const { data: { session } } = await require('@/lib/supabase').supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await require('@/lib/supabase').supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.role === 'admin' || profile?.role === 'manager') {
+          router.push('/admin');
+        } else {
+          router.push('/portal/dashboard');
+        }
+      }
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión. Verifique sus datos.');
     } finally {

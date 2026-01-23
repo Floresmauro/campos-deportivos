@@ -5,94 +5,94 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Download, Printer, Building2, MapPin, QrCode } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-interface Stadium {
-    id: string;
-    name: string;
-    address: string;
-    location_lat: number;
-    location_lng: number;
+interface Predio {
+  id: string;
+  name: string;
+  address: string;
+  location_lat: number;
+  location_lng: number;
 }
 
 export default function QRGeneratorPage() {
-    const [stadiums, setStadiums] = useState<Stadium[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedStadium, setSelectedStadium] = useState<Stadium | null>(null);
+  const [predios, setPredios] = useState<Predio[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPredio, setSelectedPredio] = useState<Predio | null>(null);
 
-    useEffect(() => {
-        loadStadiums();
-    }, []);
+  useEffect(() => {
+    loadPredios();
+  }, []);
 
-    const loadStadiums = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('stadiums')
-                .select('*')
-                .order('name');
+  const loadPredios = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stadiums')
+        .select('*')
+        .order('name');
 
-            if (error) throw error;
-            setStadiums(data || []);
-        } catch (error) {
-            console.error('Error loading stadiums:', error);
-        } finally {
-            setLoading(false);
+      if (error) throw error;
+      setPredios(data || []);
+    } catch (error) {
+      console.error('Error loading predios:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadQR = (predio: Predio) => {
+    const svg = document.getElementById(`qr-${predio.id}`)?.querySelector('svg');
+    if (svg) {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = 400;
+        canvas.height = 500;
+        if (ctx) {
+          // White background
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Draw QR centered
+          ctx.drawImage(img, 50, 30, 300, 300);
+
+          // Add predio name
+          ctx.fillStyle = '#1a472a';
+          ctx.font = 'bold 24px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(predio.name, 200, 380);
+
+          // Add instruction
+          ctx.fillStyle = '#666';
+          ctx.font = '16px Inter, sans-serif';
+          ctx.fillText('Escanear para fichar asistencia', 200, 420);
+
+          // Add logo text
+          ctx.fillStyle = '#2d5a27';
+          ctx.font = 'bold 14px Inter, sans-serif';
+          ctx.fillText('CAMPOS DEPORTIVOS', 200, 470);
+
+          const downloadLink = document.createElement("a");
+          downloadLink.download = `QR-Fichaje-${predio.name.replace(/\s/g, '-')}.png`;
+          downloadLink.href = canvas.toDataURL("image/png");
+          downloadLink.click();
         }
-    };
+      };
+      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+    }
+  };
 
-    const downloadQR = (stadium: Stadium) => {
-        const svg = document.getElementById(`qr-${stadium.id}`)?.querySelector('svg');
-        if (svg) {
-            const svgData = new XMLSerializer().serializeToString(svg);
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            const img = new Image();
-            img.onload = () => {
-                canvas.width = 400;
-                canvas.height = 500;
-                if (ctx) {
-                    // White background
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const printQR = (predio: Predio) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const svg = document.getElementById(`qr-${predio.id}`)?.querySelector('svg');
+      const svgData = svg ? new XMLSerializer().serializeToString(svg) : '';
 
-                    // Draw QR centered
-                    ctx.drawImage(img, 50, 30, 300, 300);
-
-                    // Add stadium name
-                    ctx.fillStyle = '#1a472a';
-                    ctx.font = 'bold 24px Inter, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(stadium.name, 200, 380);
-
-                    // Add instruction
-                    ctx.fillStyle = '#666';
-                    ctx.font = '16px Inter, sans-serif';
-                    ctx.fillText('Escanear para fichar asistencia', 200, 420);
-
-                    // Add logo text
-                    ctx.fillStyle = '#2d5a27';
-                    ctx.font = 'bold 14px Inter, sans-serif';
-                    ctx.fillText('CAMPOS DEPORTIVOS', 200, 470);
-
-                    const downloadLink = document.createElement("a");
-                    downloadLink.download = `QR-Fichaje-${stadium.name.replace(/\s/g, '-')}.png`;
-                    downloadLink.href = canvas.toDataURL("image/png");
-                    downloadLink.click();
-                }
-            };
-            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-        }
-    };
-
-    const printQR = (stadium: Stadium) => {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-            const svg = document.getElementById(`qr-${stadium.id}`)?.querySelector('svg');
-            const svgData = svg ? new XMLSerializer().serializeToString(svg) : '';
-
-            printWindow.document.write(`
+      printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>QR Fichaje - ${stadium.name}</title>
+          <title>QR Fichaje - ${predio.name}</title>
           <style>
             body {
               font-family: 'Inter', Arial, sans-serif;
@@ -134,9 +134,9 @@ export default function QRGeneratorPage() {
           </style>
         </head>
         <body>
-          <div class="qr-card">
-            <div class="qr-code">${svgData}</div>
-            <h1>${stadium.name}</h1>
+          <div className="qr-card">
+            <div className="qr-code">${svgData}</div>
+            <h1>${predio.name}</h1>
             <p class="instructions">Escanear para registrar entrada/salida</p>
             <p class="logo">CAMPOS DEPORTIVOS</p>
           </div>
@@ -144,81 +144,81 @@ export default function QRGeneratorPage() {
         </body>
         </html>
       `);
-            printWindow.document.close();
-        }
-    };
+      printWindow.document.close();
+    }
+  };
 
-    return (
-        <div className="qr-generator-page">
-            <header className="page-header">
-                <div className="header-content">
-                    <QrCode size={32} />
-                    <div>
-                        <h1>Generador de Códigos QR</h1>
-                        <p>Genera e imprime códigos QR para el fichaje de personal en cada sede</p>
+  return (
+    <div className="qr-generator-page">
+      <header className="page-header">
+        <div className="header-content">
+          <QrCode size={32} />
+          <div>
+            <h1>Generador de Códigos QR</h1>
+            <p>Genera e imprime códigos QR para el fichaje de personal en cada predio</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="page-main">
+        {loading ? (
+          <div className="loading">Cargando predios...</div>
+        ) : predios.length === 0 ? (
+          <div className="empty-state">
+            <Building2 size={48} />
+            <p>No hay predios registrados. Agrega predios primero.</p>
+          </div>
+        ) : (
+          <>
+            <div className="info-banner">
+              <p>
+                <strong>Instrucciones:</strong> Descarga o imprime el código QR de cada sede y colócalo en la entrada.
+                Los empleados podrán escanear el código con la app del portal para registrar su entrada y salida.
+              </p>
+            </div>
+
+            <div className="stadiums-grid">
+              {predios.map((predio) => (
+                <div key={predio.id} className="stadium-qr-card">
+                  <div className="qr-preview" id={`qr-${predio.id}`}>
+                    <QRCodeSVG
+                      value={predio.id}
+                      size={180}
+                      level="H"
+                      includeMargin={true}
+                      bgColor="white"
+                      fgColor="#1a472a"
+                    />
+                  </div>
+                  <div className="stadium-info">
+                    <h3>{predio.name}</h3>
+                    <div className="stadium-address">
+                      <MapPin size={14} />
+                      <span>{predio.address || 'Sin dirección'}</span>
                     </div>
+                  </div>
+                  <div className="card-actions">
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => downloadQR(predio)}
+                    >
+                      <Download size={16} /> Descargar
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => printQR(predio)}
+                    >
+                      <Printer size={16} /> Imprimir
+                    </button>
+                  </div>
                 </div>
-            </header>
+              ))}
+            </div>
+          </>
+        )}
+      </main>
 
-            <main className="page-main">
-                {loading ? (
-                    <div className="loading">Cargando estadios...</div>
-                ) : stadiums.length === 0 ? (
-                    <div className="empty-state">
-                        <Building2 size={48} />
-                        <p>No hay estadios registrados. Agrega estadios primero.</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="info-banner">
-                            <p>
-                                <strong>Instrucciones:</strong> Descarga o imprime el código QR de cada sede y colócalo en la entrada.
-                                Los empleados podrán escanear el código con la app del portal para registrar su entrada y salida.
-                            </p>
-                        </div>
-
-                        <div className="stadiums-grid">
-                            {stadiums.map((stadium) => (
-                                <div key={stadium.id} className="stadium-qr-card">
-                                    <div className="qr-preview" id={`qr-${stadium.id}`}>
-                                        <QRCodeSVG
-                                            value={stadium.id}
-                                            size={180}
-                                            level="H"
-                                            includeMargin={true}
-                                            bgColor="white"
-                                            fgColor="#1a472a"
-                                        />
-                                    </div>
-                                    <div className="stadium-info">
-                                        <h3>{stadium.name}</h3>
-                                        <div className="stadium-address">
-                                            <MapPin size={14} />
-                                            <span>{stadium.address || 'Sin dirección'}</span>
-                                        </div>
-                                    </div>
-                                    <div className="card-actions">
-                                        <button
-                                            className="btn btn-secondary"
-                                            onClick={() => downloadQR(stadium)}
-                                        >
-                                            <Download size={16} /> Descargar
-                                        </button>
-                                        <button
-                                            className="btn btn-primary"
-                                            onClick={() => printQR(stadium)}
-                                        >
-                                            <Printer size={16} /> Imprimir
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                )}
-            </main>
-
-            <style jsx>{`
+      <style jsx>{`
         .qr-generator-page {
           padding: 2rem;
         }
@@ -360,6 +360,6 @@ export default function QRGeneratorPage() {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

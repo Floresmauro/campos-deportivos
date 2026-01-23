@@ -1,15 +1,58 @@
+"use client";
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FileText, Download, Calendar, ArrowLeft, Home } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { FileText, Download, Calendar, ArrowLeft, Home, Loader2 } from 'lucide-react';
+
+interface Recibo {
+  id: string;
+  month: number;
+  year: number;
+  net_salary: number;
+  file_url: string | null;
+  created_at: string;
+}
 
 export default function RecibosPage() {
-  // Mock data
-  const recibos = [
-    { id: 1, month: 'Enero 2026', date: '05/01/2026', amount: '$350.000', downloaded: false },
-    { id: 2, month: 'Diciembre 2025', date: '05/12/2025', amount: '$350.000', downloaded: true },
-    { id: 3, month: 'Noviembre 2025', date: '05/11/2025', amount: '$340.000', downloaded: true },
-    { id: 4, month: 'Octubre 2025', date: '05/10/2025', amount: '$340.000', downloaded: true },
-    { id: 5, month: 'Septiembre 2025', date: '05/09/2025', amount: '$330.000', downloaded: true },
+  const { user } = useAuth();
+  const [recibos, setRecibos] = useState<Recibo[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const months = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchRecibos();
+    }
+  }, [user]);
+
+  const fetchRecibos = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('payroll')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false });
+
+      if (error) throw error;
+      setRecibos(data || []);
+    } catch (error) {
+      console.error('Error fetching recibos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('es-AR');
+  };
 
   return (
     <div className="recibos-page">
@@ -28,26 +71,50 @@ export default function RecibosPage() {
       </header>
 
       <main className="page-main">
-        <div className="recibos-list">
-          {recibos.map((recibo) => (
-            <div key={recibo.id} className={`recibo-card ${!recibo.downloaded ? 'new' : ''}`}>
-              <div className="recibo-icon">
-                <FileText size={24} />
-                {!recibo.downloaded && <span className="new-badge">Nuevo</span>}
-              </div>
-              <div className="recibo-info">
-                <h3>{recibo.month}</h3>
-                <div className="recibo-meta">
-                  <span><Calendar size={14} /> {recibo.date}</span>
-                  <span className="amount">{recibo.amount}</span>
+        {loading ? (
+          <div className="loading-state">
+            <Loader2 className="spinner" size={40} />
+            <p>Cargando tus recibos...</p>
+          </div>
+        ) : recibos.length === 0 ? (
+          <div className="empty-state">
+            <FileText size={64} />
+            <h3>No se encontraron recibos</h3>
+            <p>Aún no tienes liquidaciones cargadas en el sistema.</p>
+          </div>
+        ) : (
+          <div className="recibos-list">
+            {recibos.map((recibo) => (
+              <div key={recibo.id} className="recibo-card">
+                <div className="recibo-icon">
+                  <FileText size={24} />
                 </div>
+                <div className="recibo-info">
+                  <h3>{months[recibo.month - 1]} {recibo.year}</h3>
+                  <div className="recibo-meta">
+                    <span><Calendar size={14} /> {formatDate(recibo.created_at)}</span>
+                    <span className="amount">${recibo.net_salary.toLocaleString('es-AR')}</span>
+                  </div>
+                </div>
+                {recibo.file_url ? (
+                  <a
+                    href={recibo.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="download-btn"
+                    title="Ver PDF"
+                  >
+                    <Download size={20} />
+                  </a>
+                ) : (
+                  <div className="no-file" title="PDF no disponible">
+                    <FileText size={20} opacity={0.3} />
+                  </div>
+                )}
               </div>
-              <button className="download-btn">
-                <Download size={20} />
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="info-note">
           <p>Los recibos están disponibles en formato PDF. Si tiene alguna consulta sobre su liquidación, contacte a Recursos Humanos.</p>
@@ -110,6 +177,32 @@ export default function RecibosPage() {
           padding: 1.5rem;
         }
 
+        .loading-state, .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 2rem;
+          text-align: center;
+          color: var(--text-secondary);
+        }
+
+        .spinner {
+          animation: spin 1s linear infinite;
+          color: var(--primary);
+          margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        .empty-state h3 {
+          margin: 1.5rem 0 0.5rem;
+          color: var(--text-main);
+        }
+
         .recibos-list {
           display: flex;
           flex-direction: column;
@@ -124,16 +217,14 @@ export default function RecibosPage() {
           align-items: center;
           gap: 1rem;
           box-shadow: var(--shadow-sm);
-          transition: transform 0.2s;
+          transition: all 0.2s;
           border: 1px solid var(--border);
         }
 
         .recibo-card:hover {
-          transform: translateX(5px);
-        }
-
-        .recibo-card.new {
-          border-left: 4px solid var(--secondary);
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-md);
+          border-color: var(--primary);
         }
 
         .recibo-icon {
@@ -146,19 +237,6 @@ export default function RecibosPage() {
           justify-content: center;
           color: var(--primary);
           flex-shrink: 0;
-          position: relative;
-        }
-
-        .new-badge {
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: var(--secondary);
-          color: white;
-          font-size: 0.65rem;
-          padding: 2px 6px;
-          border-radius: 10px;
-          font-weight: 600;
         }
 
         .recibo-info {
@@ -192,7 +270,7 @@ export default function RecibosPage() {
           width: 44px;
           height: 44px;
           background: var(--primary);
-          color: white;
+          color: white !important;
           border: none;
           border-radius: var(--radius-sm);
           cursor: pointer;
@@ -206,12 +284,22 @@ export default function RecibosPage() {
           background: var(--primary-light);
         }
 
+        .no-file {
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-secondary);
+        }
+
         .info-note {
           margin-top: 2rem;
           padding: 1rem;
           background: var(--surface);
           border-radius: var(--radius-md);
           border-left: 4px solid var(--accent);
+          border: 1px solid var(--border);
         }
 
         .info-note p {

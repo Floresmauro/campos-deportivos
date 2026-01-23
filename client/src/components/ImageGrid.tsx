@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 interface InstagramImage {
     url: string;
-    estadio: string;
+    titulo: string;
     descripcion: string;
 }
 
@@ -20,12 +20,12 @@ const ImageGrid = ({ images }: ImageGridProps) => {
                     <div className="image-wrapper">
                         <img
                             src={img.url}
-                            alt={img.estadio}
+                            alt={img.titulo}
                             loading="lazy"
                         />
                         <div className="hover-overlay">
                             <div className="overlay-content">
-                                <h3>{img.estadio}</h3>
+                                <h3>{img.titulo}</h3>
                                 <p>{img.descripcion}</p>
                             </div>
                         </div>

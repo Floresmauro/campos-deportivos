@@ -6,95 +6,108 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
-    const router = useRouter();
-    const { login, loading } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
+  const router = useRouter();
+  const { login, loading } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-        try {
-            await login(email, password);
-            // Redirect based on role will be handled by middleware
-            router.push('/admin');
-        } catch (err: any) {
-            setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+    try {
+      await login(email, password);
+      // Redirección inteligente basada en rol
+      const { data: { session } } = await require('@/lib/supabase').supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await require('@/lib/supabase').supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.role === 'admin' || profile?.role === 'manager') {
+          router.push('/admin');
+        } else {
+          router.push('/portal/dashboard');
         }
-    };
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+    }
+  };
 
-    return (
-        <div className="login-page">
-            <div className="login-container">
-                <div className="login-card">
-                    <div className="login-header">
-                        <h1>Campos Deportivos</h1>
-                        <p>Inicia sesión en tu cuenta</p>
-                    </div>
+  return (
+    <div className="login-page">
+      <div className="login-container">
+        <div className="login-card">
+          <div className="login-header">
+            <h1>Campos Deportivos</h1>
+            <p>Inicia sesión en tu cuenta</p>
+          </div>
 
-                    {error && (
-                        <div className="error-message">
-                            {error}
-                        </div>
-                    )}
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
 
-                    <form onSubmit={handleSubmit} className="login-form">
-                        <div className="form-group">
-                            <label htmlFor="email">
-                                <Mail size={18} />
-                                Email
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="tu@email.com"
-                                required
-                                autoComplete="email"
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="password">
-                                <Lock size={18} />
-                                Contraseña
-                            </label>
-                            <div className="password-input">
-                                <input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    required
-                                    autoComplete="current-password"
-                                />
-                                <button
-                                    type="button"
-                                    className="toggle-password"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" className="btn-login" disabled={loading}>
-                            {loading ? 'Ingresando...' : 'Iniciar Sesión'}
-                        </button>
-                    </form>
-
-                    <div className="login-footer">
-                        <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
-                    </div>
-                </div>
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="form-group">
+              <label htmlFor="email">
+                <Mail size={18} />
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                required
+                autoComplete="email"
+              />
             </div>
 
-            <style jsx>{`
+            <div className="form-group">
+              <label htmlFor="password">
+                <Lock size={18} />
+                Contraseña
+              </label>
+              <div className="password-input">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn-login" disabled={loading}>
+              {loading ? 'Ingresando...' : 'Iniciar Sesión'}
+            </button>
+          </form>
+
+          <div className="login-footer">
+            <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
         .login-page {
           min-height: 100vh;
           display: flex;
@@ -244,6 +257,6 @@ export default function LoginPage() {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

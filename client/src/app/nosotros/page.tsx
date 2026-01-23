@@ -9,7 +9,7 @@ export default function AboutPage() {
       <header className="page-header">
         <div className="container">
           <h1 className="page-title">Sobre Nosotros</h1>
-          <p className="page-subtitle">Más de 15 años cuidando el deporte argentino.</p>
+          <p className="page-subtitle">13 años cuidando el deporte argentino.</p>
         </div>
       </header>
 

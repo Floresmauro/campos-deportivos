@@ -105,7 +105,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (data.user) {
                 await fetchUserProfile(data.user.id, data.user.email!);
-                router.push('/portal/dashboard');
             }
         } catch (error: any) {
             console.error('Login error:', error);

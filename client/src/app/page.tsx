@@ -6,19 +6,19 @@ import ImageGrid from '@/components/ImageGrid';
 
 const estadiosData = [
   {
-    url: 'https://images.unsplash.com/photo-1556011522-aaaff071869e?q=80&w=800&auto=format&fit=crop',
-    estadio: 'Arena Central',
-    descripcion: 'Campo profesional de césped sintético alta densidad.'
+    url: '/images/instagram/argentinos_juniors.jpg',
+    titulo: 'Mantenimiento Técnico',
+    descripcion: 'Gestión integral de césped sintético de alta densidad para alta competencia.'
   },
   {
-    url: 'https://images.unsplash.com/photo-1521733606456-621813f28392?q=80&w=800&auto=format&fit=crop',
-    estadio: 'Complejo Norte',
-    descripcion: 'Sede con 5 campos de fútbol y vestuarios premium.'
+    url: '/images/instagram/cahacarita.jpg',
+    titulo: 'Infraestructura Deportiva',
+    descripcion: 'Optimización de predios con tecnología de vanguardia y personal especializado.'
   },
   {
-    url: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop',
-    estadio: 'Estadio del Este',
-    descripcion: 'Césped natural nivel FIFA Pro.'
+    url: '/images/instagram/racing.jpg',
+    titulo: 'Superficies de Alto Rendimiento',
+    descripcion: 'Tratamiento de césped natural bajo estándares internacionales FIFA Pro.'
   },
 ];
 
@@ -29,7 +29,7 @@ export default function Home() {
       <section className="hero">
         <div className="hero__overlay"></div>
         <div className="container hero__content">
-          <h1 className="hero__title">Excelencia en Gestión Deportiva</h1>
+          <h1 className="hero__title">Campos Deportivos Excelencia en Gestión Deportiva</h1>
           <p className="hero__subtitle">
             Expertos en mantenimiento de campos deportivos, logística de maquinaria y administración de personal para clubes de primera línea.
           </p>
@@ -62,14 +62,14 @@ export default function Home() {
             <div className="about__stats">
               <div className="stat-card">
                 <span className="stat-number">50+</span>
-                <span className="stat-label">Estadios Gestionados</span>
+                <span className="stat-label">Proyectos Completados</span>
               </div>
               <div className="stat-card">
                 <span className="stat-number">200+</span>
                 <span className="stat-label">Colaboradores</span>
               </div>
               <div className="stat-card">
-                <span className="stat-number">15</span>
+                <span className="stat-number">13</span>
                 <span className="stat-label">Años de Trayectoria</span>
               </div>
             </div>
@@ -82,13 +82,13 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <span className="section-label">Portafolio</span>
-            <h2>Nuestros Campos</h2>
-            <p>Instalaciones de primer nivel diseñadas para el rendimiento deportivo máximo.</p>
+            <h2>Nuestros Trabajos</h2>
+            <p>Soluciones técnicas y resultados de excelencia en la gestión de superficies deportivas.</p>
           </div>
           <ImageGrid images={estadiosData} />
           <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-            <Link href="/estadios" className="btn btn-primary">
-              Ver todas las sedes <ArrowRight size={18} />
+            <Link href="/portfolio" className="btn btn-primary">
+              Ver Portfolio Completo <ArrowRight size={18} />
             </Link>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function Home() {
         .hero {
           position: relative;
           height: 650px;
-          background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&q=80');
+          background-image: url('/images/instagram/racing.jpg');
           background-size: cover;
           background-position: center;
           display: flex;

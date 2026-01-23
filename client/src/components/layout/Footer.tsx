@@ -25,7 +25,7 @@ const Footer = () => {
             <ul className="footer__links">
               <li><Link href="/nosotros" className="footer__link--text"><ArrowRight size={14} /> Nosotros</Link></li>
               <li><Link href="/servicios" className="footer__link--text"><ArrowRight size={14} /> Servicios</Link></li>
-              <li><Link href="/clientes" className="footer__link--text"><ArrowRight size={14} /> Clientes</Link></li>
+              <li><Link href="/portfolio" className="footer__link--text"><ArrowRight size={14} /> Portfolio</Link></li>
               <li><Link href="/novedades" className="footer__link--text"><ArrowRight size={14} /> Novedades</Link></li>
               <li><Link href="/contacto" className="footer__link--text"><ArrowRight size={14} /> Contacto</Link></li>
             </ul>
