@@ -14,9 +14,8 @@ const Footer = () => {
               Líderes en gestión integral de predios deportivos y mantenimiento de superficies de alto rendimiento.
             </p>
             <div className="footer__social">
-              <a href="#" className="social-btn"><Instagram size={20} /></a>
-              <a href="#" className="social-btn"><Facebook size={20} /></a>
-              <a href="#" className="social-btn"><Linkedin size={20} /></a>
+              <a href="https://www.instagram.com/campos_deportivos_aciar_walter?igsh=MXNyeGs4YXJpYXhmeA==" className="social-btn" target="_blank" rel="noopener noreferrer"><Instagram size={20} /></a>
+              <a href="https://www.facebook.com/walter.aciar.5/?locale=es_LA" className="social-btn" target="_blank" rel="noopener noreferrer"><Facebook size={20} /></a>
             </div>
           </div>
 
