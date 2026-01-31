@@ -88,10 +88,16 @@ export default function PersonnelPage() {
             if (activeTab === 'employees') {
                 const { data, error } = await supabase
                     .from('profiles')
-                    .select('*, stadiums!assigned_stadium_id (name)')
+                    .select('id, email, full_name, role, assigned_stadium_id, phone, dni, avatar_url, obra_social, birth_date, start_date, emergency_contact_name, emergency_contact_phone, stadiums:assigned_stadium_id (name)')
                     .order('full_name');
                 if (error) throw error;
-                setEmployees(data || []);
+
+                // Map data to ensure stadiums is an object not array if needed
+                const mappedData = (data || []).map((emp: any) => ({
+                    ...emp,
+                    stadiums: Array.isArray(emp.stadiums) ? emp.stadiums[0] : emp.stadiums
+                }));
+                setEmployees(mappedData);
 
                 const { data: stadiumData } = await supabase.from('stadiums').select('id, name');
                 setStadiums(stadiumData || []);
@@ -99,18 +105,28 @@ export default function PersonnelPage() {
                 const today = new Date().toISOString().split('T')[0];
                 const { data, error } = await supabase
                     .from('attendance')
-                    .select('*, profiles:user_id (full_name)')
+                    .select('id, user_id, type, timestamp, photo_url, profiles:user_id (full_name)')
                     .gte('timestamp', today)
                     .order('timestamp', { ascending: false });
                 if (error) throw error;
-                setAttendance(data || []);
+
+                const mappedData = (data || []).map((a: any) => ({
+                    ...a,
+                    profiles: Array.isArray(a.profiles) ? a.profiles[0] : a.profiles
+                }));
+                setAttendance(mappedData);
             } else if (activeTab === 'requests') {
                 const { data, error } = await supabase
                     .from('requests')
-                    .select('*, profiles:user_id (full_name)')
+                    .select('id, user_id, type, start_date, end_date, status, reason, created_at, profiles:user_id (full_name)')
                     .order('created_at', { ascending: false });
                 if (error) throw error;
-                setRequests(data || []);
+
+                const mappedData = (data || []).map((r: any) => ({
+                    ...r,
+                    profiles: Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
+                }));
+                setRequests(mappedData);
             }
         } catch (error) {
             console.error('Error loading data:', error);

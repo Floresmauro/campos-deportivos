@@ -25,9 +25,9 @@ export default function AdminDashboard() {
         { count: profilesCount },
         { count: assetsCount }
       ] = await Promise.all([
-        supabase.from('stadiums').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('assets').select('*', { count: 'exact', head: true })
+        supabase.from('stadiums').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('assets').select('id', { count: 'exact', head: true })
       ]);
 
       setStats([

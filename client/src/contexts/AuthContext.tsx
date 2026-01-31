@@ -42,39 +42,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let mounted = true;
 
-        const initAuth = async () => {
+        // Listen for auth changes - INITIAL_SESSION will fire immediately
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('Auth event:', event);
+
             try {
-                const { data: { session } } = await supabase.auth.getSession();
                 if (session && mounted) {
-                    await fetchUserProfile(session.user.id, session.user.email!);
+                    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                        await fetchUserProfile(session.user.id, session.user.email!);
+                    }
+                } else if (mounted) {
+                    if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+                        setUser(null);
+                    }
                 }
             } catch (error) {
-                console.error('Error during initial auth:', error);
+                console.error('Error in auth state change:', error);
             } finally {
-                if (mounted) setLoading(false);
-            }
-        };
-
-        initAuth();
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) {
-                if (session && mounted) {
-                    await fetchUserProfile(session.user.id, session.user.email!);
-                    setLoading(false);
-                }
-            } else if (event === 'SIGNED_OUT') {
                 if (mounted) {
-                    setUser(null);
                     setLoading(false);
                 }
             }
         });
 
+        // Safety fallback: if no event fires within 5 seconds, clear loading
+        const timeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn('Auth initialization timed out, clearing loading state.');
+                setLoading(false);
+            }
+        }, 5000);
+
         return () => {
             mounted = false;
             subscription.unsubscribe();
+            clearTimeout(timeout);
         };
     }, []);
 

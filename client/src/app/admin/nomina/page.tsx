@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Search, Upload, FileText, Download, Trash2, Filter } from 'lucide-react';
+import { Search, Upload, FileText, Download, Trash2, FilePlus, Plus, Minus } from 'lucide-react';
 import Modal from '@/components/Modal';
+import { generateReceiptPDF } from '@/utils/receiptGenerator';
 
 interface Profile {
   id: string;
@@ -30,14 +31,25 @@ export default function PayrollPage() {
 
   // Modal states
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 
-  // Form states
-  const [formData, setFormData] = useState({
+  // Form states for Upload
+  const [uploadFormData, setUploadFormData] = useState({
     user_id: '',
     month: (new Date().getMonth() + 1).toString(),
     year: new Date().getFullYear(),
     total_amount: '',
     file: null as File | null
+  });
+
+  // Form states for Generation
+  const [genFormData, setGenFormData] = useState({
+    user_id: '',
+    month: (new Date().getMonth() + 1).toString(),
+    year: new Date().getFullYear(),
+    items: [
+      { description: 'Sueldo Básico', remunerative: 0, deduction: 0 }
+    ]
   });
 
   const months = [
@@ -77,7 +89,7 @@ export default function PayrollPage() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.file || !formData.user_id) {
+    if (!uploadFormData.file || !uploadFormData.user_id) {
       alert('Por favor selecciona un empleado y un archivo PDF.');
       return;
     }
@@ -85,33 +97,28 @@ export default function PayrollPage() {
     try {
       setLoading(true);
 
-      // 1. Upload to Supabase Storage
-      const fileExt = formData.file.name.split('.').pop();
-      const fileName = `${formData.user_id}/${Date.now()}.${fileExt}`;
+      const fileExt = uploadFormData.file.name.split('.').pop();
+      const fileName = `${uploadFormData.user_id}/${Date.now()}.${fileExt}`;
       const filePath = `receipts/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('payroll')
-        .upload(filePath, formData.file);
+        .upload(filePath, uploadFormData.file);
 
-      if (uploadError) {
-        console.warn('Storage upload failed', uploadError);
-        // throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
         .from('payroll')
         .getPublicUrl(filePath);
 
-      // 2. Insert into DB
       const { error: dbError } = await supabase
         .from('payroll')
         .insert({
-          user_id: formData.user_id,
-          month: parseInt(formData.month),
-          year: formData.year,
-          net_salary: parseFloat(formData.total_amount) || 0,
-          gross_salary: parseFloat(formData.total_amount) || 0,
+          user_id: uploadFormData.user_id,
+          month: parseInt(uploadFormData.month),
+          year: uploadFormData.year,
+          net_salary: parseFloat(uploadFormData.total_amount) || 0,
+          gross_salary: parseFloat(uploadFormData.total_amount) || 0,
           file_url: publicUrl,
           status: 'paid'
         });
@@ -119,7 +126,7 @@ export default function PayrollPage() {
       if (dbError) throw dbError;
 
       setIsUploadModalOpen(false);
-      setFormData({
+      setUploadFormData({
         user_id: '',
         month: (new Date().getMonth() + 1).toString(),
         year: new Date().getFullYear(),
@@ -133,6 +140,82 @@ export default function PayrollPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!genFormData.user_id) {
+      alert('Seleccione un empleado');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const employee = employees.find(e => e.id === genFormData.user_id);
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', genFormData.user_id).single();
+
+      const gross = genFormData.items.reduce((acc, item) => acc + (Number(item.remunerative) || 0), 0);
+      const deductions = genFormData.items.reduce((acc, item) => acc + (Number(item.deduction) || 0), 0);
+      const net = gross - deductions;
+
+      const pdfBlob = await generateReceiptPDF({
+        company: {
+          name: 'CAMPOS DEPORTIVOS S.A.',
+          address: 'Buenos Aires, Argentina',
+          cuit: '30-12345678-9'
+        },
+        employee: {
+          name: employee?.full_name || '',
+          cuil: profile?.dni || 'N/A',
+          category: profile?.role || 'Empleado',
+          entryDate: profile?.start_date || 'N/A'
+        },
+        period: {
+          month: months.find(m => m.value === parseInt(genFormData.month))?.label || '',
+          year: genFormData.year
+        },
+        items: genFormData.items.map(i => ({ ...i, remunerative: Number(i.remunerative), deduction: Number(i.deduction) })),
+        totals: { gross, deductions, net }
+      });
+
+      // Upload
+      const filePath = `receipts/${genFormData.user_id}/GEN-${Date.now()}.pdf`;
+      const { error: uploadError } = await supabase.storage.from('payroll').upload(filePath, pdfBlob);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('payroll').getPublicUrl(filePath);
+
+      // Save Record
+      const { error: dbError } = await supabase.from('payroll').insert({
+        user_id: genFormData.user_id,
+        month: parseInt(genFormData.month),
+        year: genFormData.year,
+        net_salary: net,
+        gross_salary: gross,
+        file_url: publicUrl,
+        status: 'paid'
+      });
+
+      if (dbError) throw dbError;
+
+      setIsGenerateModalOpen(false);
+      loadData();
+      alert('Recibo generado y guardado con éxito');
+    } catch (error: any) {
+      console.error('Error generating receipt:', error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addItem = () => {
+    setGenFormData({ ...genFormData, items: [...genFormData.items, { description: '', remunerative: 0, deduction: 0 }] });
+  };
+
+  const removeItem = (index: number) => {
+    const newItems = genFormData.items.filter((_, i) => i !== index);
+    setGenFormData({ ...genFormData, items: newItems });
   };
 
   const handleDelete = async (id: string, fileUrl: string | null) => {
@@ -159,13 +242,23 @@ export default function PayrollPage() {
           <h1>Nómina y Liquidaciones</h1>
           <p>Gestión de de pagos y recibos de sueldo.</p>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={() => setIsUploadModalOpen(true)}
-        >
-          <Upload size={18} />
-          Subir Liquidación
-        </button>
+        <div className="page-header-actions">
+          <button
+            className="btn btn-outline"
+            onClick={() => setIsGenerateModalOpen(true)}
+            style={{ marginRight: '1rem' }}
+          >
+            <FilePlus size={18} />
+            Generar Recibo
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => setIsUploadModalOpen(true)}
+          >
+            <Upload size={18} />
+            Subir Liquidación
+          </button>
+        </div>
       </div>
 
       <div className="search-bar">
@@ -233,8 +326,8 @@ export default function PayrollPage() {
           <div className="form-group">
             <label>Empleado *</label>
             <select
-              value={formData.user_id}
-              onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
+              value={uploadFormData.user_id}
+              onChange={(e) => setUploadFormData({ ...uploadFormData, user_id: e.target.value })}
               required
             >
               <option value="">Seleccionar Empleado</option>
@@ -248,8 +341,8 @@ export default function PayrollPage() {
             <div className="form-group">
               <label>Mes</label>
               <select
-                value={formData.month}
-                onChange={(e) => setFormData({ ...formData, month: e.target.value })}
+                value={uploadFormData.month}
+                onChange={(e) => setUploadFormData({ ...uploadFormData, month: e.target.value })}
               >
                 {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
@@ -258,8 +351,8 @@ export default function PayrollPage() {
               <label>Año</label>
               <input
                 type="number"
-                value={formData.year}
-                onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
+                value={uploadFormData.year}
+                onChange={(e) => setUploadFormData({ ...uploadFormData, year: parseInt(e.target.value) })}
               />
             </div>
           </div>
@@ -269,8 +362,8 @@ export default function PayrollPage() {
             <input
               type="number"
               placeholder="Ej: 850000"
-              value={formData.total_amount}
-              onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+              value={uploadFormData.total_amount}
+              onChange={(e) => setUploadFormData({ ...uploadFormData, total_amount: e.target.value })}
             />
           </div>
 
@@ -279,7 +372,7 @@ export default function PayrollPage() {
             <input
               type="file"
               accept=".pdf"
-              onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
+              onChange={(e) => setUploadFormData({ ...uploadFormData, file: e.target.files?.[0] || null })}
               required
             />
           </div>
@@ -287,6 +380,87 @@ export default function PayrollPage() {
           <div className="form-actions">
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? 'Subiendo...' : 'Subir Liquidación'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal Generación */}
+      <Modal isOpen={isGenerateModalOpen} onClose={() => setIsGenerateModalOpen(false)} title="Generar Recibo de Sueldo">
+        <form onSubmit={handleGenerate} className="gen-form">
+          <div className="form-group">
+            <label>Empleado *</label>
+            <select
+              value={genFormData.user_id}
+              onChange={(e) => setGenFormData({ ...genFormData, user_id: e.target.value })}
+              required
+            >
+              <option value="">Seleccionar Empleado</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.full_name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Mes</label>
+              <select value={genFormData.month} onChange={(e) => setGenFormData({ ...genFormData, month: e.target.value })}>
+                {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Año</label>
+              <input type="number" value={genFormData.year} onChange={(e) => setGenFormData({ ...genFormData, year: parseInt(e.target.value) })} />
+            </div>
+          </div>
+
+          <div className="items-section">
+            <div className="section-header">
+              <h3>Detalle de Conceptos</h3>
+              <button type="button" className="btn-add" onClick={addItem}><Plus size={14} /> Agregar</button>
+            </div>
+
+            {genFormData.items.map((item, index) => (
+              <div key={index} className="item-row">
+                <input
+                  type="text"
+                  placeholder="Descripción"
+                  value={item.description}
+                  onChange={(e) => {
+                    const newItems = [...genFormData.items];
+                    newItems[index].description = e.target.value;
+                    setGenFormData({ ...genFormData, items: newItems });
+                  }}
+                />
+                <input
+                  type="number"
+                  placeholder="Remun."
+                  value={item.remunerative}
+                  onChange={(e) => {
+                    const newItems = [...genFormData.items];
+                    newItems[index].remunerative = parseFloat(e.target.value) || 0;
+                    setGenFormData({ ...genFormData, items: newItems });
+                  }}
+                />
+                <input
+                  type="number"
+                  placeholder="Deduc."
+                  value={item.deduction}
+                  onChange={(e) => {
+                    const newItems = [...genFormData.items];
+                    newItems[index].deduction = parseFloat(e.target.value) || 0;
+                    setGenFormData({ ...genFormData, items: newItems });
+                  }}
+                />
+                <button type="button" className="btn-remove" onClick={() => removeItem(index)}><Minus size={14} /></button>
+              </div>
+            ))}
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Generando...' : 'Generar y Guardar PDF'}
             </button>
           </div>
         </form>
@@ -341,6 +515,18 @@ export default function PayrollPage() {
                 .form-group label { font-weight: 600; font-size: 0.9rem; }
                 .form-group input, .form-group select { padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; background: var(--surface); color: var(--text-main); }
                 .form-actions { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+                .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
+                
+                .gen-form { display: flex; flex-direction: column; gap: 1rem; }
+                .items-section { margin-top: 1rem; border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius-md); }
+                .items-section .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+                .items-section .section-header h3 { font-size: 0.9rem; margin: 0; }
+                .btn-add { background: #EBF7ED; color: var(--primary); border: none; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; }
+                
+                .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 0.5rem; margin-bottom: 0.5rem; }
+                .item-row input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem; }
+                .btn-remove { background: #FEE2E2; color: #B91C1C; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
             `}</style>
     </div>
   );
