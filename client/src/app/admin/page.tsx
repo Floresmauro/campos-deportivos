@@ -20,24 +20,47 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const [
-        { count: stadiumsCount },
-        { count: profilesCount },
-        { count: assetsCount }
-      ] = await Promise.all([
-        supabase.from('stadiums').select('id', { count: 'exact', head: true }),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('assets').select('id', { count: 'exact', head: true })
-      ]);
+      // Fetch each stat independently to handle missing tables gracefully
+      let stadiumsCount = 0;
+      let profilesCount = 0;
+      let assetsCount = 0;
+
+      try {
+        const { count } = await supabase.from('stadiums').select('id', { count: 'exact', head: true });
+        stadiumsCount = count || 0;
+      } catch (err) {
+        console.warn('Error fetching stadiums count:', err);
+      }
+
+      try {
+        const { count } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+        profilesCount = count || 0;
+      } catch (err) {
+        console.warn('Error fetching profiles count:', err);
+      }
+
+      try {
+        const { count } = await supabase.from('assets').select('id', { count: 'exact', head: true });
+        assetsCount = count || 0;
+      } catch (err) {
+        console.warn('Error fetching assets count:', err);
+      }
 
       setStats([
-        { label: 'Predios Gestionados', value: stadiumsCount || 0, icon: <Building2 size={24} />, color: '#003366' },
-        { label: 'Empleados', value: profilesCount || 0, icon: <Users size={24} />, color: '#2E8B57' },
-        { label: 'Maquinarias', value: assetsCount || 0, icon: <Wrench size={24} />, color: '#6B7280' },
+        { label: 'Predios Gestionados', value: stadiumsCount, icon: <Building2 size={24} />, color: '#003366' },
+        { label: 'Empleados', value: profilesCount, icon: <Users size={24} />, color: '#2E8B57' },
+        { label: 'Maquinarias', value: assetsCount, icon: <Wrench size={24} />, color: '#6B7280' },
         { label: 'Alertas', value: 3, icon: <AlertTriangle size={24} />, color: '#DC2626' }, // Keep dummy for now
       ]);
     } catch (error) {
       console.error('Error fetching stats:', error);
+      // Set default values if everything fails
+      setStats([
+        { label: 'Predios Gestionados', value: 0, icon: <Building2 size={24} />, color: '#003366' },
+        { label: 'Empleados', value: 0, icon: <Users size={24} />, color: '#2E8B57' },
+        { label: 'Maquinarias', value: 0, icon: <Wrench size={24} />, color: '#6B7280' },
+        { label: 'Alertas', value: 3, icon: <AlertTriangle size={24} />, color: '#DC2626' },
+      ]);
     } finally {
       setLoading(false);
     }

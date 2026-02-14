@@ -48,7 +48,7 @@ export default function QRAttendancePage() {
   };
 
   const handleScanSuccess = useCallback(async (decodedText: string) => {
-    if (status !== 'scanning' || !location || !user) return;
+    if (status !== 'scanning' || !user) return;
 
     setStatus('validating');
     try {
@@ -59,8 +59,8 @@ export default function QRAttendancePage() {
         body: JSON.stringify({
           qrCodeId: decodedText,
           userId: user.id,
-          lat: location.lat,
-          lng: location.lng,
+          lat: location?.lat || null,
+          lng: location?.lng || null,
           type: attendanceType
         })
       });
@@ -84,8 +84,8 @@ export default function QRAttendancePage() {
         const { error: dbError } = await supabase.from('attendance').insert({
           user_id: user.id,
           type: attendanceType,
-          location_lat: location.lat,
-          location_lng: location.lng,
+          location_lat: location?.lat || null,
+          location_lng: location?.lng || null,
           timestamp: new Date().toISOString()
         });
 
@@ -142,22 +142,62 @@ export default function QRAttendancePage() {
 
             <div className="instructions">
               <Navigation size={48} className="icon-pulse" />
-              <h3>Paso 1: Ubicación</h3>
-              <p>Necesitamos validar que te encuentras en la sede asignada.</p>
+              <h3>Fichaje con Verificación</h3>
+              <p>Para evitar fraude, necesitamos verificar tu ubicación GPS.</p>
               <button className="btn-primary" onClick={requestLocation}>
-                Activar GPS y Empezar
+                <MapPin size={18} style={{ marginRight: '0.5rem' }} />
+                Fichar con GPS Verificado
               </button>
+              <details style={{ marginTop: '1rem', width: '100%' }}>
+                <summary style={{
+                  fontSize: '0.85rem',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  padding: '0.5rem'
+                }}>
+                  Solo para emergencias técnicas
+                </summary>
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '1rem',
+                  background: 'rgba(220, 38, 38, 0.1)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(220, 38, 38, 0.3)'
+                }}>
+                  <p style={{ fontSize: '0.8rem', margin: '0 0 0.75rem 0', color: 'var(--text-secondary)' }}>
+                    ⚠️ <strong>Advertencia:</strong> Este modo NO valida ubicación. Solo usar si GPS falla por problemas técnicos. El sistema registrará que fue sin verificación.
+                  </p>
+                  <button
+                    className="btn-outline"
+                    onClick={() => setStatus('scanning')}
+                    style={{ fontSize: '0.85rem', padding: '0.6rem 1rem' }}
+                  >
+                    Continuar sin GPS
+                  </button>
+                </div>
+              </details>
             </div>
           </div>
         )}
+
 
         {status === 'scanning' && (
           <div className="state-view">
             <div className="scan-overlay">
               <QRScanner onScanSuccess={handleScanSuccess} />
               <div className="scan-info">
-                <MapPin size={16} />
-                <span>GPS Activo - Escanea el código de la sede</span>
+                {location ? (
+                  <>
+                    <MapPin size={16} />
+                    <span>GPS Activo - Escanea el código de la sede</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle size={16} style={{ color: '#dc2626' }} />
+                    <span style={{ color: '#dc2626' }}>⚠️ Sin verificación GPS - Se registrará como no validado</span>
+                  </>
+                )}
               </div>
             </div>
             <button className="btn-outline" onClick={() => setStatus('idle')}>
@@ -165,6 +205,7 @@ export default function QRAttendancePage() {
             </button>
           </div>
         )}
+
 
         {(status === 'validating') && (
           <div className="state-view loading">

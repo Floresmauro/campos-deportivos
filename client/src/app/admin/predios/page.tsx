@@ -13,9 +13,92 @@ interface Predio {
   city: string;
   location_lat: number | null;
   location_lng: number | null;
-  status: string;
   created_at: string;
 }
+
+// Move form component outside to prevent re-creation
+const PredioForm = ({
+  formData,
+  setFormData,
+  onSubmit,
+  submitLabel
+}: {
+  formData: any;
+  setFormData: (data: any) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  submitLabel: string;
+}) => (
+  <form onSubmit={onSubmit} className="stadium-form">
+    <div className="form-group">
+      <label>Nombre del Predio *</label>
+      <input
+        type="text"
+        value={formData.name}
+        onChange={e => setFormData({ ...formData, name: e.target.value })}
+        required
+        placeholder="Ej: Predio Racing Club"
+      />
+    </div>
+    <div className="form-group">
+      <label>Dirección</label>
+      <input
+        type="text"
+        value={formData.address}
+        onChange={e => setFormData({ ...formData, address: e.target.value })}
+        placeholder="Ej: Av. Mitre 1234"
+      />
+    </div>
+    <div className="form-group">
+      <label>Ciudad</label>
+      <input
+        type="text"
+        value={formData.city}
+        onChange={e => setFormData({ ...formData, city: e.target.value })}
+        placeholder="Ej: Avellaneda"
+      />
+    </div>
+    <div className="form-row">
+      <div className="form-group">
+        <label>Latitud (GPS)</label>
+        <input
+          type="number"
+          step="any"
+          value={formData.location_lat}
+          onChange={e => setFormData({ ...formData, location_lat: e.target.value })}
+          placeholder="-34.6692"
+        />
+      </div>
+      <div className="form-group">
+        <label>Longitud (GPS)</label>
+        <input
+          type="number"
+          step="any"
+          value={formData.location_lng}
+          onChange={e => setFormData({ ...formData, location_lng: e.target.value })}
+          placeholder="-58.3650"
+        />
+      </div>
+    </div>
+
+    <button type="submit" className="btn btn-primary btn-block">{submitLabel}</button>
+
+    <style jsx>{`
+      .stadium-form { display: flex; flex-direction: column; gap: 1rem; }
+      .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+      .form-group label { font-weight: 500; color: var(--text-main); }
+      .form-group input, .form-group select {
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        background: var(--background);
+        color: var(--text-main);
+      }
+      .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .btn-block { width: 100%; margin-top: 0.5rem; }
+    `}</style>
+  </form>
+);
 
 export default function PrediosPage() {
   const [predios, setPredios] = useState<Predio[]>([]);
@@ -34,8 +117,7 @@ export default function PrediosPage() {
     address: '',
     city: '',
     location_lat: '',
-    location_lng: '',
-    status: 'active'
+    location_lng: ''
   });
 
   useEffect(() => {
@@ -64,8 +146,7 @@ export default function PrediosPage() {
       address: '',
       city: '',
       location_lat: '',
-      location_lng: '',
-      status: 'active'
+      location_lng: ''
     });
   };
 
@@ -77,8 +158,7 @@ export default function PrediosPage() {
         address: formData.address,
         city: formData.city,
         location_lat: formData.location_lat ? parseFloat(formData.location_lat) : null,
-        location_lng: formData.location_lng ? parseFloat(formData.location_lng) : null,
-        status: formData.status
+        location_lng: formData.location_lng ? parseFloat(formData.location_lng) : null
       };
 
       const { data, error } = await supabase.from('stadiums').insert([insertData]).select().single();
@@ -108,8 +188,7 @@ export default function PrediosPage() {
         address: formData.address,
         city: formData.city,
         location_lat: formData.location_lat ? parseFloat(formData.location_lat) : null,
-        location_lng: formData.location_lng ? parseFloat(formData.location_lng) : null,
-        status: formData.status
+        location_lng: formData.location_lng ? parseFloat(formData.location_lng) : null
       };
 
       const { error } = await supabase.from('stadiums').update(updateData).eq('id', selectedPredio.id);
@@ -143,8 +222,7 @@ export default function PrediosPage() {
       address: predio.address || '',
       city: predio.city || '',
       location_lat: predio.location_lat?.toString() || '',
-      location_lng: predio.location_lng?.toString() || '',
-      status: predio.status || 'active'
+      location_lng: predio.location_lng?.toString() || ''
     });
     setIsEditModalOpen(true);
   };
@@ -157,86 +235,6 @@ export default function PrediosPage() {
   const filtered = predios.filter(s =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (s.city || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const PredioForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string }) => (
-    <form onSubmit={onSubmit} className="stadium-form">
-      <div className="form-group">
-        <label>Nombre del Predio *</label>
-        <input
-          type="text"
-          value={formData.name}
-          onChange={e => setFormData({ ...formData, name: e.target.value })}
-          required
-          placeholder="Ej: Predio Racing Club"
-        />
-      </div>
-      <div className="form-group">
-        <label>Dirección</label>
-        <input
-          type="text"
-          value={formData.address}
-          onChange={e => setFormData({ ...formData, address: e.target.value })}
-          placeholder="Ej: Av. Mitre 1234"
-        />
-      </div>
-      <div className="form-group">
-        <label>Ciudad</label>
-        <input
-          type="text"
-          value={formData.city}
-          onChange={e => setFormData({ ...formData, city: e.target.value })}
-          placeholder="Ej: Avellaneda"
-        />
-      </div>
-      <div className="form-row">
-        <div className="form-group">
-          <label>Latitud (GPS)</label>
-          <input
-            type="number"
-            step="any"
-            value={formData.location_lat}
-            onChange={e => setFormData({ ...formData, location_lat: e.target.value })}
-            placeholder="-34.6692"
-          />
-        </div>
-        <div className="form-group">
-          <label>Longitud (GPS)</label>
-          <input
-            type="number"
-            step="any"
-            value={formData.location_lng}
-            onChange={e => setFormData({ ...formData, location_lng: e.target.value })}
-            placeholder="-58.3650"
-          />
-        </div>
-      </div>
-      <div className="form-group">
-        <label>Estado</label>
-        <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
-          <option value="active">Activo</option>
-          <option value="maintenance">En Mantenimiento</option>
-          <option value="inactive">Inactivo</option>
-        </select>
-      </div>
-      <button type="submit" className="btn btn-primary btn-block">{submitLabel}</button>
-
-      <style jsx>{`
-        .stadium-form { display: flex; flex-direction: column; gap: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group label { font-weight: 500; color: var(--text-main); }
-        .form-group input, .form-group select {
-          padding: 0.75rem;
-          border: 1px solid var(--border);
-          border-radius: var(--radius-sm);
-          font-size: 1rem;
-          background: var(--background);
-          color: var(--text-main);
-        }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .btn-block { width: 100%; margin-top: 0.5rem; }
-      `}</style>
-    </form>
   );
 
   return (
@@ -275,9 +273,6 @@ export default function PrediosPage() {
             <thead>
               <tr>
                 <th>Nombre</th>
-                <th>Ciudad</th>
-                <th>Dirección</th>
-                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -289,13 +284,9 @@ export default function PrediosPage() {
                       <MapPin size={16} />
                       {predio.name}
                     </div>
-                  </td>
-                  <td>{predio.city || '-'}</td>
-                  <td>{predio.address || '-'}</td>
-                  <td>
-                    <span className={`status-badge ${predio.status === 'active' ? 'active' : predio.status === 'maintenance' ? 'maintenance' : 'inactive'}`}>
-                      {predio.status === 'active' ? 'Activo' : predio.status === 'maintenance' ? 'Mantenimiento' : 'Inactivo'}
-                    </span>
+                    <div className="predio-meta">
+                      <p>{predio.address}, {predio.city}</p>
+                    </div>
                   </td>
                   <td>
                     <div className="action-btns">
@@ -319,12 +310,12 @@ export default function PrediosPage() {
 
       {/* Create Modal */}
       <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nuevo Predio">
-        <PredioForm onSubmit={handleCreate} submitLabel="Crear Predio" />
+        <PredioForm formData={formData} setFormData={setFormData} onSubmit={handleCreate} submitLabel="Crear Predio" />
       </Modal>
 
       {/* Edit Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedPredio(null); }} title="Editar Predio">
-        <PredioForm onSubmit={handleEdit} submitLabel="Guardar Cambios" />
+        <PredioForm formData={formData} setFormData={setFormData} onSubmit={handleEdit} submitLabel="Guardar Cambios" />
       </Modal>
 
       {/* QR Modal */}

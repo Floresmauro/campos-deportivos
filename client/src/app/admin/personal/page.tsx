@@ -47,6 +47,184 @@ interface Stadium {
     name: string;
 }
 
+// Form component extracted outside to prevent re-creation on state changes
+const EmployeeForm = ({
+    formData,
+    setFormData,
+    stadiums,
+    uploading,
+    handleFileUpload,
+    onSubmit,
+    submitLabel,
+    isEdit = false
+}: {
+    formData: any;
+    setFormData: (data: any) => void;
+    stadiums: Stadium[];
+    uploading: boolean;
+    handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onSubmit: (e: React.FormEvent) => void;
+    submitLabel: string;
+    isEdit?: boolean;
+}) => (
+    <form onSubmit={onSubmit} className="employee-form">
+        <div className="form-photo-section">
+            <div className="photo-preview">
+                {formData.avatar_url ? (
+                    <img src={formData.avatar_url} alt="Avatar" />
+                ) : (
+                    <User size={40} />
+                )}
+            </div>
+            <div className="photo-actions">
+                <label className="btn-upload">
+                    {uploading ? 'Subiendo...' : 'Subir Foto'}
+                    <input type="file" accept="image/*" onChange={handleFileUpload} hidden />
+                </label>
+                {formData.avatar_url && (
+                    <button type="button" className="btn-remove" onClick={() => setFormData({ ...formData, avatar_url: '' })}>Eliminar</button>
+                )}
+            </div>
+        </div>
+
+        <div className="form-row">
+            <div className="form-group">
+                <label>Nombre Completo *</label>
+                <input
+                    type="text"
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    required
+                />
+            </div>
+            <div className="form-group">
+                <label>DNI</label>
+                <input
+                    type="text"
+                    value={formData.dni}
+                    onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                />
+            </div>
+        </div>
+
+        <div className="form-group">
+            <label>Email *</label>
+            <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                disabled={isEdit}
+            />
+            {!isEdit && <small>Contraseña por defecto: password123</small>}
+        </div>
+
+        <div className="form-row">
+            <div className="form-group">
+                <label>Rol *</label>
+                <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    required
+                >
+                    <option value="employee">Empleado</option>
+                    <option value="manager">Encargado</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            <div className="form-group">
+                <label>Sede Asignada</label>
+                <select
+                    value={formData.assigned_stadium_id}
+                    onChange={(e) => setFormData({ ...formData, assigned_stadium_id: e.target.value })}
+                >
+                    <option value="">Sin asignar / Administración</option>
+                    {stadiums.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                </select>
+            </div>
+        </div>
+
+        <div className="form-row">
+            <div className="form-group">
+                <label>Teléfono</label>
+                <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+            </div>
+            <div className="form-group">
+                <label>Obra Social</label>
+                <input
+                    type="text"
+                    value={formData.obra_social}
+                    onChange={(e) => setFormData({ ...formData, obra_social: e.target.value })}
+                />
+            </div>
+        </div>
+
+        <div className="form-row">
+            <div className="form-group">
+                <label>Fecha de Nacimiento</label>
+                <input
+                    type="date"
+                    value={formData.birth_date}
+                    onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+                />
+            </div>
+            <div className="form-group">
+                <label>Fecha de Ingreso</label>
+                <input
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                />
+            </div>
+        </div>
+
+        <div className="form-section-title">En caso de emergencia</div>
+        <div className="form-row">
+            <div className="form-group">
+                <label>Contacto (Nombre)</label>
+                <input
+                    type="text"
+                    value={formData.emergency_contact_name}
+                    onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
+                />
+            </div>
+            <div className="form-group">
+                <label>Teléfono de Emergencia</label>
+                <input
+                    type="text"
+                    value={formData.emergency_contact_phone}
+                    onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+                />
+            </div>
+        </div>
+
+        <div className="form-actions">
+            <button type="submit" className="btn btn-primary">{submitLabel}</button>
+        </div>
+        <style jsx>{`
+            .employee-form { display: flex; flex-direction: column; gap: 1rem; }
+            .form-photo-section { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 0.5rem; background: var(--background); padding: 1rem; border-radius: var(--radius-md); }
+            .photo-preview { width: 80px; height: 80px; background: var(--surface); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--border); }
+            .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+            .photo-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+            .btn-upload { background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; }
+            .btn-remove { background: none; border: none; color: #b91c1c; font-size: 0.8rem; cursor: pointer; padding: 0; }
+            .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+            .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+            .form-group label { font-weight: 600; font-size: 0.9rem; }
+            .form-group input, .form-group select { padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; background: var(--surface); color: var(--text-main); }
+            .form-section-title { font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+            .form-actions { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border); }
+        `}</style>
+    </form>
+);
+
 export default function PersonnelPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'employees' | 'attendance' | 'requests'>('employees');
@@ -88,18 +266,20 @@ export default function PersonnelPage() {
             if (activeTab === 'employees') {
                 const { data, error } = await supabase
                     .from('profiles')
-                    .select('id, email, full_name, role, assigned_stadium_id, phone, dni, avatar_url, obra_social, birth_date, start_date, emergency_contact_name, emergency_contact_phone, stadiums:assigned_stadium_id (name)')
+                    .select('id, email, full_name, role, assigned_stadium_id, phone, dni, avatar_url, obra_social, birth_date, start_date, emergency_contact_name, emergency_contact_phone')
                     .order('full_name');
-                if (error) throw error;
+                if (error) {
+                    console.error('Error loading profiles:', error);
+                    throw error;
+                }
 
-                // Map data to ensure stadiums is an object not array if needed
-                const mappedData = (data || []).map((emp: any) => ({
-                    ...emp,
-                    stadiums: Array.isArray(emp.stadiums) ? emp.stadiums[0] : emp.stadiums
-                }));
-                setEmployees(mappedData);
+                setEmployees(data || []);
 
-                const { data: stadiumData } = await supabase.from('stadiums').select('id, name');
+                const { data: stadiumData, error: stadiumError } = await supabase.from('stadiums').select('id, name');
+                if (stadiumError) {
+                    console.error('Error loading stadiums:', stadiumError);
+                }
+                console.log('Loaded stadiums:', stadiumData);
                 setStadiums(stadiumData || []);
             } else if (activeTab === 'attendance') {
                 const today = new Date().toISOString().split('T')[0];
@@ -160,7 +340,8 @@ export default function PersonnelPage() {
 
             if (!response.ok) {
                 const err = await response.json();
-                throw new Error(err.message || 'Error al crear empleado');
+                console.error('Server error response:', err);
+                throw new Error(err.error || err.message || 'Error al crear empleado');
             }
 
             setIsCreateModalOpen(false);
@@ -300,165 +481,6 @@ export default function PersonnelPage() {
         e.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.stadiums?.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const EmployeeForm = ({ onSubmit, submitLabel, isEdit = false }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string, isEdit?: boolean }) => (
-        <form onSubmit={onSubmit} className="employee-form">
-            <div className="form-photo-section">
-                <div className="photo-preview">
-                    {formData.avatar_url ? (
-                        <img src={formData.avatar_url} alt="Avatar" />
-                    ) : (
-                        <User size={40} />
-                    )}
-                </div>
-                <div className="photo-actions">
-                    <label className="btn-upload">
-                        {uploading ? 'Subiendo...' : 'Subir Foto'}
-                        <input type="file" accept="image/*" onChange={handleFileUpload} hidden />
-                    </label>
-                    {formData.avatar_url && (
-                        <button type="button" className="btn-remove" onClick={() => setFormData({ ...formData, avatar_url: '' })}>Eliminar</button>
-                    )}
-                </div>
-            </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Nombre Completo *</label>
-                    <input
-                        type="text"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label>DNI</label>
-                    <input
-                        type="text"
-                        value={formData.dni}
-                        onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                    />
-                </div>
-            </div>
-
-            <div className="form-group">
-                <label>Email *</label>
-                <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    disabled={isEdit}
-                />
-                {!isEdit && <small>Contraseña por defecto: password123</small>}
-            </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Rol *</label>
-                    <select
-                        value={formData.role}
-                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                        required
-                    >
-                        <option value="employee">Empleado</option>
-                        <option value="manager">Encargado</option>
-                        <option value="admin">Administrador</option>
-                    </select>
-                </div>
-                <div className="form-group">
-                    <label>Sede Asignada</label>
-                    <select
-                        value={formData.assigned_stadium_id}
-                        onChange={(e) => setFormData({ ...formData, assigned_stadium_id: e.target.value })}
-                    >
-                        <option value="">Sin asignar / Administración</option>
-                        {stadiums.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Teléfono</label>
-                    <input
-                        type="text"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Obra Social</label>
-                    <input
-                        type="text"
-                        value={formData.obra_social}
-                        onChange={(e) => setFormData({ ...formData, obra_social: e.target.value })}
-                    />
-                </div>
-            </div>
-
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Fecha de Nacimiento</label>
-                    <input
-                        type="date"
-                        value={formData.birth_date}
-                        onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Fecha de Ingreso</label>
-                    <input
-                        type="date"
-                        value={formData.start_date}
-                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    />
-                </div>
-            </div>
-
-            <div className="form-section-title">En caso de emergencia</div>
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Contacto (Nombre)</label>
-                    <input
-                        type="text"
-                        value={formData.emergency_contact_name}
-                        onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Teléfono de Emergencia</label>
-                    <input
-                        type="text"
-                        value={formData.emergency_contact_phone}
-                        onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
-                    />
-                </div>
-            </div>
-
-            <div className="form-actions">
-                <button type="submit" className="btn btn-primary">{submitLabel}</button>
-            </div>
-            <style jsx>{`
-                .employee-form { display: flex; flex-direction: column; gap: 1rem; }
-                .form-photo-section { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 0.5rem; background: var(--background); padding: 1rem; border-radius: var(--radius-md); }
-                .photo-preview { width: 80px; height: 80px; background: var(--surface); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--border); }
-                .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-                .photo-actions { display: flex; flex-direction: column; gap: 0.5rem; }
-                .btn-upload { background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; }
-                .btn-remove { background: none; border: none; color: #b91c1c; font-size: 0.8rem; cursor: pointer; padding: 0; }
-                .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-                .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-                .form-group label { font-weight: 600; font-size: 0.9rem; }
-                .form-group input, .form-group select { padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; background: var(--surface); color: var(--text-main); }
-                .form-section-title { font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-                .form-actions { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border); }
-            `}</style>
-        </form>
     );
 
     return (
@@ -638,11 +660,11 @@ export default function PersonnelPage() {
             )}
 
             <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nuevo Empleado">
-                <EmployeeForm onSubmit={handleCreateEmployee} submitLabel="Crear Empleado" />
+                <EmployeeForm formData={formData} setFormData={setFormData} stadiums={stadiums} uploading={uploading} handleFileUpload={handleFileUpload} onSubmit={handleCreateEmployee} submitLabel="Crear Empleado" />
             </Modal>
 
             <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Empleado">
-                <EmployeeForm onSubmit={handleEditEmployee} submitLabel="Guardar Cambios" isEdit={true} />
+                <EmployeeForm formData={formData} setFormData={setFormData} stadiums={stadiums} uploading={uploading} handleFileUpload={handleFileUpload} onSubmit={handleEditEmployee} submitLabel="Guardar Cambios" isEdit={true} />
             </Modal>
 
             <style jsx>{`
@@ -792,6 +814,22 @@ export default function PersonnelPage() {
 
         .link { color: var(--primary); text-decoration: none; font-size: 0.9rem; }
         .link:hover { text-decoration: underline; }
+
+        /* Fix calendar icon visibility in dark mode */
+        input[type="date"] {
+          color-scheme: dark;
+          position: relative;
+        }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          filter: brightness(0) invert(1);
+          cursor: pointer;
+          opacity: 0.8;
+        }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
+        }
       `}</style>
         </div>
     );

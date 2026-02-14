@@ -226,7 +226,7 @@ export default function PortalDashboard() {
           width: 56px;
           height: 56px;
           background: var(--accent);
-          color: var(--primary);
+          color: white;
           border-radius: 16px;
           display: flex;
           align-items: center;
@@ -396,7 +396,7 @@ export default function PortalDashboard() {
 
         .badge {
           background: var(--accent);
-          color: var(--primary);
+          color: white;
           padding: 0.25rem 0.75rem;
           border-radius: 100px;
           font-size: 0.75rem;

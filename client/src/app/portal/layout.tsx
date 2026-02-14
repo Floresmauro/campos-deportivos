@@ -14,7 +14,7 @@ export default function PortalLayout({
 
     useEffect(() => {
         if (!loading && !user) {
-            router.push('/portal');
+            router.push('/login');
         }
     }, [user, loading, router]);
 

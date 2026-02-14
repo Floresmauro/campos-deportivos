@@ -359,7 +359,7 @@ export default function SolicitudesPage() {
 
         .btn-primary {
           background: var(--accent);
-          color: var(--primary) !important;
+          color: white !important;
         }
 
         .btn-primary:hover {

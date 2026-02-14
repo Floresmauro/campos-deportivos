@@ -25,6 +25,87 @@ interface Stadium {
   name: string;
 }
 
+// Form component extracted outside to prevent re-creation on state changes
+const AssetForm = ({
+  formData,
+  setFormData,
+  stadiums,
+  onSubmit,
+  submitLabel
+}: {
+  formData: any;
+  setFormData: (data: any) => void;
+  stadiums: Stadium[];
+  onSubmit: (e: React.FormEvent) => void;
+  submitLabel: string;
+}) => (
+  <form onSubmit={onSubmit} className="asset-form">
+    <div className="form-row">
+      <div className="form-group">
+        <label>Nombre *</label>
+        <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+      </div>
+      <div className="form-group">
+        <label>Nº Serie *</label>
+        <input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} required />
+      </div>
+    </div>
+    <div className="form-row">
+      <div className="form-group">
+        <label>Tipo *</label>
+        <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} required>
+          <option value="machinery">Maquinaria</option>
+          <option value="tool">Herramienta</option>
+          <option value="vehicle">Vehículo</option>
+          <option value="other">Otro</option>
+        </select>
+      </div>
+      <div className="form-group">
+        <label>Estado *</label>
+        <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} required>
+          <option value="available">Disponible</option>
+          <option value="in_use">En Uso</option>
+          <option value="maintenance">Mantenimiento</option>
+          <option value="out_of_service">Fuera de Servicio</option>
+        </select>
+      </div>
+    </div>
+    <div className="form-row">
+      <div className="form-group">
+        <label>Sede</label>
+        <select value={formData.current_stadium_id} onChange={(e) => setFormData({ ...formData, current_stadium_id: e.target.value })}>
+          <option value="">Sin asignar</option>
+          {stadiums.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      </div>
+      <div className="form-group">
+        <label>Ubicación</label>
+        <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+      </div>
+    </div>
+    <div className="form-group">
+      <label>Observaciones</label>
+      <textarea
+        value={formData.notes || ''}
+        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+        rows={3}
+        placeholder="Detalles adicionales, mantenimiento, especificaciones..."
+      />
+    </div>
+    <div className="form-actions">
+      <button type="submit" className="btn btn-primary">{submitLabel}</button>
+    </div>
+    <style jsx>{`
+      .asset-form { display: flex; flex-direction: column; gap: 1rem; }
+      .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+      .form-group label { font-weight: 600; font-size: 0.85rem; }
+      .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--text-main); }
+      .form-actions { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border); }
+    `}</style>
+  </form>
+);
+
 export default function AssetsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -180,74 +261,6 @@ export default function AssetsPage() {
     out_of_service: { label: 'Fuera de Servicio', class: 'error' }
   };
 
-  const AssetForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string }) => (
-    <form onSubmit={onSubmit} className="asset-form">
-      <div className="form-row">
-        <div className="form-group">
-          <label>Nombre *</label>
-          <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-        </div>
-        <div className="form-group">
-          <label>Nº Serie *</label>
-          <input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} required />
-        </div>
-      </div>
-      <div className="form-row">
-        <div className="form-group">
-          <label>Tipo *</label>
-          <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} required>
-            <option value="machinery">Maquinaria</option>
-            <option value="tool">Herramienta</option>
-            <option value="vehicle">Vehículo</option>
-            <option value="other">Otro</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Estado *</label>
-          <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} required>
-            <option value="available">Disponible</option>
-            <option value="in_use">En Uso</option>
-            <option value="maintenance">Mantenimiento</option>
-            <option value="out_of_service">Fuera de Servicio</option>
-          </select>
-        </div>
-      </div>
-      <div className="form-row">
-        <div className="form-group">
-          <label>Sede</label>
-          <select value={formData.current_stadium_id} onChange={(e) => setFormData({ ...formData, current_stadium_id: e.target.value })}>
-            <option value="">Sin asignar</option>
-            {stadiums.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Ubicación</label>
-          <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-        </div>
-      </div>
-      <div className="form-group">
-        <label>Observaciones</label>
-        <textarea
-          value={formData.notes || ''}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          rows={3}
-          placeholder="Detalles adicionales, mantenimiento, especificaciones..."
-        />
-      </div>
-      <div className="form-actions">
-        <button type="submit" className="btn btn-primary">{submitLabel}</button>
-      </div>
-      <style jsx>{`
-        .asset-form { display: flex; flex-direction: column; gap: 1rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-        .form-group label { font-weight: 600; font-size: 0.85rem; }
-        .form-group input, .form-group select { padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; }
-        .form-actions { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border); }
-      `}</style>
-    </form>
-  );
-
   return (
     <div className="assets-page">
       <div className="page-header">
@@ -313,11 +326,11 @@ export default function AssetsPage() {
       )}
 
       <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nuevo Activo">
-        <AssetForm onSubmit={handleCreate} submitLabel="Crear Activo" />
+        <AssetForm formData={formData} setFormData={setFormData} stadiums={stadiums} onSubmit={handleCreate} submitLabel="Crear Activo" />
       </Modal>
 
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Activo">
-        <AssetForm onSubmit={handleEdit} submitLabel="Guardar Cambios" />
+        <AssetForm formData={formData} setFormData={setFormData} stadiums={stadiums} onSubmit={handleEdit} submitLabel="Guardar Cambios" />
       </Modal>
 
       <Modal isOpen={isQrModalOpen} onClose={() => { setIsQrModalOpen(false); setSelectedAsset(null); }} title="Código QR">

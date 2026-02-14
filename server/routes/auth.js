@@ -4,7 +4,9 @@ const { createClient } = require('@supabase/supabase-js');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+// Use service role key for admin operations (creating users)
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
 
 // Validation middleware
 const validate = (req, res, next) => {
@@ -61,7 +63,21 @@ router.post('/login', loginValidation, async (req, res) => {
 // Register (Admin only - requires valid admin token)
 router.post('/register', registerValidation, async (req, res) => {
     try {
-        const { email, password, full_name, role, phone, assigned_stadium_id } = req.body;
+        const {
+            email,
+            password,
+            full_name,
+            role,
+            phone,
+            assigned_stadium_id,
+            dni,
+            obra_social,
+            birth_date,
+            start_date,
+            emergency_contact_name,
+            emergency_contact_phone,
+            avatar_url
+        } = req.body;
 
         // Create auth user
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -72,7 +88,7 @@ router.post('/register', registerValidation, async (req, res) => {
 
         if (authError) throw authError;
 
-        // Create profile
+        // Create profile with all fields
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .insert([{
@@ -81,7 +97,14 @@ router.post('/register', registerValidation, async (req, res) => {
                 full_name,
                 role,
                 phone,
-                assigned_stadium_id
+                assigned_stadium_id,
+                dni,
+                obra_social,
+                birth_date,
+                start_date,
+                emergency_contact_name,
+                emergency_contact_phone,
+                avatar_url
             }])
             .select()
             .single();

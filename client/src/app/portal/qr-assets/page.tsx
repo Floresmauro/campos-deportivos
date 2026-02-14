@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Truck, CheckCircle, XCircle, Info, RefreshCw, Move, ArrowLeft, Home } from 'lucide-react';
+import { Truck, CheckCircle, XCircle, Info, RefreshCw, Move, ArrowLeft, Home, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -17,6 +17,30 @@ export default function QRAssetsPage() {
   const [scannedQr, setScannedQr] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [stadiums, setStadiums] = useState<any[]>([]);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Request GPS location
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setMessage('Tu navegador no soporta geolocalización');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setStatus('scanning');
+      },
+      (error) => {
+        console.error("Geo error:", error);
+        setMessage('Error al obtener ubicación. Por favor, activa el GPS.');
+      },
+      { enableHighAccuracy: true }
+    );
+  };
 
   // Fetch stadiums when entering options
   const fetchStadiums = async () => {
@@ -47,7 +71,9 @@ export default function QRAssetsPage() {
           assetQrCode: scannedQr,
           userId: user.id,
           action,
-          targetStadiumId
+          targetStadiumId,
+          lat: location?.lat || null,
+          lng: location?.lng || null
         })
       });
 
@@ -90,10 +116,40 @@ export default function QRAssetsPage() {
             <Truck size={48} className="icon-main" />
             <div className="instructions">
               <h3>Control de Maquinaria</h3>
-              <p>Escanea el QR pegado en la maquinaria para cambiar su custodia o ubicación.</p>
-              <button className="btn-primary" onClick={() => setStatus('scanning')}>
-                Abrir Escáner
+              <p>Para evitar fraude, necesitamos verificar tu ubicación GPS.</p>
+              <button className="btn-primary" onClick={requestLocation}>
+                <MapPin size={18} style={{ marginRight: '0.5rem' }} />
+                Activar GPS y Escanear
               </button>
+              <details style={{ marginTop: '1rem', width: '100%' }}>
+                <summary style={{
+                  fontSize: '0.85rem',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  padding: '0.5rem'
+                }}>
+                  Solo para emergencias técnicas
+                </summary>
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '1rem',
+                  background: 'rgba(220, 38, 38, 0.1)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(220, 38, 38, 0.3)'
+                }}>
+                  <p style={{ fontSize: '0.8rem', margin: '0 0 0.75rem 0', color: 'var(--text-secondary)' }}>
+                    ⚠️ <strong>Advertencia:</strong> Este modo NO valida ubicación. El sistema registrará que fue sin verificación.
+                  </p>
+                  <button
+                    className="btn-outline"
+                    onClick={() => setStatus('scanning')}
+                    style={{ fontSize: '0.85rem', padding: '0.6rem 1rem' }}
+                  >
+                    Continuar sin GPS
+                  </button>
+                </div>
+              </details>
             </div>
           </div>
         )}
@@ -101,6 +157,19 @@ export default function QRAssetsPage() {
         {status === 'scanning' && (
           <div className="state-view">
             <QRScanner onScanSuccess={handleScanSuccess} />
+            <div className="scan-info">
+              {location ? (
+                <>
+                  <MapPin size={16} />
+                  <span>GPS Activo - Escanea el código de la maquinaria</span>
+                </>
+              ) : (
+                <>
+                  <XCircle size={16} style={{ color: '#dc2626' }} />
+                  <span style={{ color: '#dc2626' }}>⚠️ Sin verificación GPS - Se registrará como no validado</span>
+                </>
+              )}
+            </div>
             <button className="btn-outline" onClick={() => setStatus('idle')}>
               Cancelar
             </button>
